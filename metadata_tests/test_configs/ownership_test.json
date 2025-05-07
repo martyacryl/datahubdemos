@@ -1,0 +1,12 @@
+{
+  "type": "ownership",
+  "name": "Ownership Test",
+  "description": "Validates that the dataset has at least one owner assigned",
+  "severity": "HIGH",
+  "documentationUrl": "https://datahubproject.io/docs/metadata-quality/",
+  "parameters": {
+    "requireTeamOwner": true,
+    "requiredOwnershipTypes": ["TECHNICAL_OWNER", "BUSINESS_OWNER"],
+    "minOwnerCount": 1
+  }
+}

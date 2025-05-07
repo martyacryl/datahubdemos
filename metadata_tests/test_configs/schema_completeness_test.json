@@ -1,0 +1,13 @@
+{
+  "type": "schema_completeness",
+  "name": "Schema Completeness Test",
+  "description": "Validates that all schema fields have descriptions",
+  "severity": "WARNING",
+  "documentationUrl": "https://datahubproject.io/docs/metadata-quality/",
+  "parameters": {
+    "minDescriptionLength": 5,
+    "fieldPathPattern": ".*",
+    "failIfAnyFieldMissing": true
+  }
+}
+

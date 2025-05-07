@@ -1,0 +1,12 @@
+{
+  "type": "freshness",
+  "name": "Data Freshness Test",
+  "description": "Validates that the dataset has been updated within the expected timeframe",
+  "severity": "MEDIUM",
+  "documentationUrl": "https://datahubproject.io/docs/metadata-quality/",
+  "parameters": {
+    "maxDaysStale": 7,
+    "updateSchedule": "daily",
+    "alertPercentage": 80
+  }
+}
