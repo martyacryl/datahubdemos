@@ -1,0 +1,38 @@
+# DataHub connection configuration
+gms_server: "http://test-environment.acryl.io/gms"
+token: "eyJhbGciOiJIUzI1NiJ9.eyJhY3RvclR5cGUiOiJVU0VSIiwiYWN0b3JJZCI6Im1hcnR5LnN0am9obkBhY3J5bC5pbyIsInR5cGUiOiJQRVJTT05BTCIsInZlcnNpb24iOiIyIiwianRpIjoiMzBlZTRiOTUtYjg4Ny00ZjgzLWI0YWItNTQxMzlmMTQwNTQ1Iiwic3ViIjoibWFydHkuc3Rqb2huQGFjcnlsLmlvIiwiaXNzIjoiZGF0YWh1Yi1tZXRhZGF0YS1zZXJ2aWNlIn0.UG_Ge9EBtpBdyHhWcantlGCoZLJZgX9E7u49GCeF6CY"  # Add a token if authentication is required
+
+domains:
+  - id: "business"
+    name: business
+    description: Business related domains
+    force_update: true
+    owners:
+      - name: DataHub
+        type: user
+        ownership_type: Technical Owner  # Optional, defaults to Technical Owner
+      - name: marketing_team
+        type: group
+        ownership_type: Stakeholder_2
+
+  - id: "marketing"
+    name: marketing
+    description: Entities related to the marketing department
+    parent: business
+    owners:
+      - name: marketing_lead
+        type: user
+        ownership_type: Technical Owner
+
+  - id: "sales"
+    name: sales
+    description: Entities related to the sales department
+    parent: business_operations
+    owners:
+      - name: sales_team
+        type: group
+        ownership_type: Business Owner
+
+  - id: "sales_ops"
+    name: sales_ops
+    description: Entities related to the sales department

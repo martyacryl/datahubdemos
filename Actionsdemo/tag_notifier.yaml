@@ -1,0 +1,32 @@
+# Configuration for tag notification action
+name: "tag_notifier"
+
+# Define where to source events from (Kafka by default)
+source:
+  type: "kafka"
+  config:
+    connection:
+      bootstrap: ${KAFKA_BOOTSTRAP_SERVER:-localhost:9092}
+      schema_registry_url: ${SCHEMA_REGISTRY_URL:-http://localhost:8081}
+
+# Filter to only process tag-related events
+filter:
+  event_type: "EntityChangeEvent_v1"
+  event:
+    category: "TAG"
+    operation: "ADD"
+
+# Define the action to take
+action:
+  # Reference our custom action
+  type: "datahubdemos.actions.tag_notifier:TagNotifierAction"
+  config:
+    # Notification method: log, slack, or email
+    notification_method: "log"
+    # List of tags considered to be PII
+    pii_tags:
+      - "pii"
+      - "personal_information"
+      - "sensitive"
+      - "confidential"
+      - "financial"

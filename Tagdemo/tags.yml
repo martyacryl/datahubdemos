@@ -1,0 +1,13 @@
+tags:
+  - name: "Deprecated"
+    description: "Resource marked for deprecation"
+    colorHex: "#FFA500"
+  - name: "Important"
+    description: "Critical business data"
+    colorHex: "#0000FF"
+  - name: "Tested"
+    description: "Validated data"
+    colorHex: "#008000"
+  - name: "Experimental"
+    description: "Data in experimental stage"
+    colorHex: "#800080"

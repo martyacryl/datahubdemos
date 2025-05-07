@@ -1,0 +1,26 @@
+# Configuration for data quality monitoring action - Cloud Version
+name: "quality_monitor"
+
+# For cloud DataHub, we need to use the REST event source instead of Kafka
+source:
+  type: "rest"
+  config:
+    server: "https://test-environment.acryl.io"
+    # Replace with your actual PAT (Personal Access Token)
+    token: "eyJhbGciOiJIUzI1NiJ9.eyJhY3RvclR5cGUiOiJVU0VSIiwiYWN0b3JJZCI6Im1hcnR5LnN0am9obkBhY3J5bC5pbyIsInR5cGUiOiJQRVJTT05BTCIsInZlcnNpb24iOiIyIiwianRpIjoiMzBlZTRiOTUtYjg4Ny00ZjgzLWI0YWItNTQxMzlmMTQwNTQ1Iiwic3ViIjoibWFydHkuc3Rqb2huQGFjcnlsLmlvIiwiaXNzIjoiZGF0YWh1Yi1tZXRhZGF0YS1zZXJ2aWNlIn0.UG_Ge9EBtpBdyHhWcantlGCoZLJZgX9E7u49GCeF6CY"
+    # Poll interval in seconds
+    polling_interval: 30
+
+# Filter to only process assertion run events
+filter:
+  event_type: "AssertionRunEvent_v1"
+
+# Define the action to take
+action:
+  # Reference our custom action
+  type: "datahubdemos.actions.quality_monitor:QualityMonitorAction"
+  config:
+    # Minimum severity level to trigger alerts (INFO, WARNING, ERROR, CRITICAL)
+    severity_threshold: "WARNING"
+    # Whether to send alerts
+    send_alerts: true
