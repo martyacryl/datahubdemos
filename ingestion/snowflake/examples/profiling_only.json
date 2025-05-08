@@ -1,0 +1,78 @@
+{
+    "source": {
+      "type": "snowflake",
+      "config": {
+        "account_id": "xy12345",
+        "warehouse": "PROFILING_WH",
+        "username": "${SNOWFLAKE_USER}",
+        "password": "${SNOWFLAKE_PASS}",
+        "role": "datahub_role",
+        
+        "env": "PROD",
+        "platform_instance": "primary",
+        
+        "database_pattern": {
+          "allow": [
+            "^ANALYTICS_DB$"
+          ]
+        },
+        
+        "schema_pattern": {
+          "allow": [
+            "^PUBLIC$",
+            "^REPORTING$"
+          ]
+        },
+        
+        "table_pattern": {
+          "allow": [
+            "ANALYTICS_DB.PUBLIC.CUSTOMER_.*",
+            "ANALYTICS_DB.PUBLIC.ORDER_.*",
+            "ANALYTICS_DB.REPORTING.SALES_.*"
+          ]
+        },
+        
+        "include_tables": true,
+        "include_views": false,
+        "include_streams": false,
+        "include_usage_stats": false,
+        "include_table_lineage": false,
+        
+        "profiling": {
+          "enabled": true,
+          "profile_table_level_only": false,
+          "include_field_null_count": true,
+          "include_field_distinct_count": true,
+          "include_field_min_value": true,
+          "include_field_max_value": true,
+          "include_field_mean_value": true,
+          "include_field_median_value": false,
+          "include_field_stddev_value": true,
+          "include_field_quantiles": false,
+          "include_field_histogram": false,
+          "include_field_sample_values": true,
+          "field_sample_values_limit": 10,
+          "max_workers": 8,
+          "turn_off_expensive_profiling_metrics": true,
+          "max_number_of_fields_to_profile": 50,
+          "profile_if_updated_since_days": 7,
+          "profile_table_size_limit": 10,
+          "profile_table_row_limit": 10000000,
+          "use_sampling": true,
+          "sample_size": 10000
+        },
+        
+        "stateful_ingestion": {
+          "enabled": true,
+          "remove_stale_metadata": false
+        }
+      }
+    },
+    "sink": {
+      "type": "datahub-rest",
+      "config": {
+        "server": "http://datahub-gms:8080"
+      }
+    },
+    "pipeline_name": "snowflake_profiling_only"
+  }

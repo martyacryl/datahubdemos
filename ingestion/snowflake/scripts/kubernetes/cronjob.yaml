@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: datahub-snowflake-ingestion
+  labels:
+    app: datahub
+    component: ingestion
+spec:
+  schedule: "0 1 * * *"  # Run at 1 AM every day
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: ingestion
+            image: ${CONTAINER_REGISTRY}/datahub-snowflake-ingestion:latest
+            command: ["ingest", "/app/config/snowflake_ingestion.json"]
+            env:
+            - name: DATAHUB_GMS_URL
+              value: "http://datahub-gms-service:8080"
+            envFrom:
+            - secretRef:
+                name: snowflake-credentials
+            volumeMounts:
+            - name: config
+              mountPath: /app/config
+          volumes:
+          - name: config
+            configMap:
+              name: datahub-snowflake-config
+          restartPolicy: OnFailure

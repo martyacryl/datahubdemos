@@ -1,0 +1,56 @@
+{
+    "glossaryTerms": [
+      {
+        "name": "PII",
+        "description": "Personally Identifiable Information. Data that could be used to identify a specific individual.",
+        "termSource": "INTERNAL",
+        "parentNode": "Data Classification"
+      },
+      {
+        "name": "Sensitive",
+        "description": "Information that requires protection due to its sensitive nature but is not PII.",
+        "termSource": "INTERNAL",
+        "parentNode": "Data Classification"
+      },
+      {
+        "name": "Confidential",
+        "description": "Highly sensitive business information that should be restricted to authorized personnel only.",
+        "termSource": "INTERNAL",
+        "parentNode": "Data Classification"
+      },
+      {
+        "name": "Public",
+        "description": "Information that can be freely shared outside the organization.",
+        "termSource": "INTERNAL",
+        "parentNode": "Data Classification"
+      },
+      {
+        "name": "GDPR",
+        "description": "Data subject to General Data Protection Regulation compliance requirements.",
+        "termSource": "INTERNAL",
+        "parentNode": "Compliance"
+      },
+      {
+        "name": "PCI",
+        "description": "Data subject to Payment Card Industry Data Security Standard compliance requirements.",
+        "termSource": "INTERNAL",
+        "parentNode": "Compliance"
+      },
+      {
+        "name": "HIPAA",
+        "description": "Data subject to Health Insurance Portability and Accountability Act compliance requirements.",
+        "termSource": "INTERNAL",
+        "parentNode": "Compliance"
+      }
+    ],
+    "glossaryNodes": [
+      {
+        "name": "Data Classification",
+        "description": "Terms related to data sensitivity and classification."
+      },
+      {
+        "name": "Compliance",
+        "description": "Terms related to regulatory compliance."
+      }
+    ]
+  }

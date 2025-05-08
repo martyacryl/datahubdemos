@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: datahub-snowflake-config
+data:
+  snowflake_ingestion.json: |
+    {
+      "source": {
+        "type": "snowflake",
+        "config": {
+          "account_id": "${SNOWFLAKE_ACCOUNT}",
+          "warehouse": "${SNOWFLAKE_WAREHOUSE}",
+          "username": "${SNOWFLAKE_USER}",
+          "password": "${SNOWFLAKE_PASS}",
+          "role": "${SNOWFLAKE_ROLE}",
+          
+          "database_pattern": {
+            "allow": [
+              "^MARKETING_DB$",
+              "^SALES_DB$",
+              "^ANALYTICS_DB$"
+            ],
+            "deny": [
+              "^SNOWFLAKE$",
+              "^SNOWFLAKE_SAMPLE_DATA$"
+            ]
+          },
+          
+          "include_tables": true,
+          "include_views": true,
+          "include_usage_stats": true,
+          "include_table_lineage": true,
+          "include_column_lineage": true,
+          "use_queries_v2": true,
+          
+          "extract_tags": "without_lineage",
+          
+          "profiling": {
+            "enabled": true,
+            "turn_off_expensive_profiling_metrics": true,
+            "use_sampling": true,
+            "sample_size": 10000
+          },
+          
+          "stateful_ingestion": {
+            "enabled": true,
+            "remove_stale_metadata": true
+          }
+        }
+      },
+      "sink": {
+        "type": "datahub-rest",
+        "config": {
+          "server": "${DATAHUB_GMS_URL}"
+        }
+      },
+      "pipeline_name": "snowflake_ingestion"
+    }

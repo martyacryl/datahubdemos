@@ -1,0 +1,48 @@
+{
+    "source": {
+      "type": "snowflake",
+      "config": {
+        "account_id": "xy12345",
+        "warehouse": "METADATA_WH",
+        "username": "${SNOWFLAKE_USER}",
+        "password": "${SNOWFLAKE_PASS}",
+        "role": "datahub_role",
+        
+        "env": "${ENVIRONMENT}",
+        "platform_instance": "${ACCOUNT_NAME}",
+        
+        "database_pattern": {
+          "allow": [
+            ".*"
+          ],
+          "deny": [
+            "^SNOWFLAKE.*$"
+          ]
+        },
+        
+        "include_tables": true,
+        "include_views": true,
+        "include_usage_stats": true,
+        "include_table_lineage": true,
+        "use_queries_v2": true,
+        
+        "extract_tags": "without_lineage",
+        
+        "profiling": {
+          "enabled": false
+        },
+        
+        "stateful_ingestion": {
+          "enabled": true,
+          "remove_stale_metadata": true
+        }
+      }
+    },
+    "sink": {
+      "type": "datahub-rest",
+      "config": {
+        "server": "${DATAHUB_GMS_URL}"
+      }
+    },
+    "pipeline_name": "snowflake_${ENVIRONMENT}_ingestion"
+  }

@@ -1,0 +1,30 @@
+{
+    "tag_to_term_mapping": {
+      "PII": "urn:li:glossaryTerm:PII",
+      "SENSITIVE": "urn:li:glossaryTerm:Sensitive",
+      "CONFIDENTIAL": "urn:li:glossaryTerm:Confidential",
+      "PUBLIC": "urn:li:glossaryTerm:Public",
+      "GDPR": "urn:li:glossaryTerm:GDPR",
+      "PCI": "urn:li:glossaryTerm:PCI",
+      "HIPAA": "urn:li:glossaryTerm:HIPAA"
+    },
+    
+    "schema_to_domain_mapping": {
+      "MARKETING_DB.PUBLIC": "urn:li:domain:Marketing",
+      "MARKETING_DB.REPORTING": "urn:li:domain:Marketing",
+      "SALES_DB.PUBLIC": "urn:li:domain:Sales",
+      "SALES_DB.REPORTING": "urn:li:domain:Sales",
+      "ANALYTICS_DB.PUBLIC": "urn:li:domain:Analytics",
+      "ANALYTICS_DB.REPORTING": "urn:li:domain:Analytics",
+      "FINANCE_DB.PUBLIC": "urn:li:domain:Finance",
+      "FINANCE_DB.REPORTING": "urn:li:domain:Finance"
+    },
+    
+    "custom_property_mappings": {
+      "ROW_COUNT": "recordCount",
+      "BYTES": "byteSize",
+      "CREATED": "created",
+      "LAST_ALTERED": "lastModified",
+      "COMMENT": "description"
+    }
+  }

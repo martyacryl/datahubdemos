@@ -1,0 +1,35 @@
+{
+    "source": {
+      "type": "snowflake",
+      "config": {
+        "account_id": "xy12345",
+        "warehouse": "COMPUTE_WH",
+        "username": "${SNOWFLAKE_USER}",
+        "password": "${SNOWFLAKE_PASS}",
+        "role": "datahub_role",
+        
+        "database_pattern": {
+          "allow": [
+            "^MARKETING_DB$",
+            "^SALES_DB$"
+          ],
+          "deny": [
+            "^SNOWFLAKE$",
+            "^SNOWFLAKE_SAMPLE_DATA$"
+          ]
+        },
+        
+        "include_tables": true,
+        "include_views": true,
+        "include_usage_stats": true,
+        "include_table_lineage": true
+      }
+    },
+    "sink": {
+      "type": "datahub-rest",
+      "config": {
+        "server": "http://localhost:8080"
+      }
+    },
+    "pipeline_name": "snowflake_basic_ingestion"
+  }

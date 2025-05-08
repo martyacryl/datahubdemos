@@ -1,0 +1,102 @@
+{
+    "source": {
+      "type": "snowflake",
+      "config": {
+        "account_id": "xy12345",
+        "warehouse": "METADATA_WH",
+        "username": "${SNOWFLAKE_USER}",
+        "authentication_type": "KEY_PAIR_AUTHENTICATOR",
+        "private_key": "${SNOWFLAKE_PRIVATE_KEY}",
+        "role": "datahub_role",
+        
+        "env": "PROD",
+        "platform_instance": "primary",
+        
+        "database_pattern": {
+          "allow": [
+            "^(MARKETING|SALES|ANALYTICS)_DB$"
+          ],
+          "deny": [
+            "^SNOWFLAKE.*$"
+          ]
+        },
+        
+        "schema_pattern": {
+          "allow": [
+            "^PUBLIC$",
+            "^REPORTING$"
+          ],
+          "deny": [
+            "^STAGING_.*$"
+          ]
+        },
+        
+        "include_tables": true,
+        "include_views": true,
+        "include_streams": true,
+        "include_procedures": true,
+        
+        "include_table_lineage": true,
+        "include_column_lineage": true,
+        "include_view_lineage": true,
+        "use_queries_v2": true,
+        "ignore_start_time_lineage": true,
+        
+        "include_usage_stats": true,
+        "top_n_queries": 20,
+        
+        "extract_tags": "without_lineage",
+        "extract_tags_as_structured_properties": true,
+        
+        "profiling": {
+          "enabled": true,
+          "profile_pattern": {
+            "allow": [
+              "ANALYTICS_DB.PUBLIC.*",
+              "MARKETING_DB.REPORTING.*"
+            ]
+          },
+          "turn_off_expensive_profiling_metrics": true,
+          "max_workers": 10,
+          "profile_table_size_limit": 5,
+          "profile_table_row_limit": 5000000,
+          "use_sampling": true,
+          "sample_size": 10000
+        },
+        
+        "domain": {
+          "urn:li:domain:Marketing": {
+            "allow": [
+              "MARKETING_DB.*"
+            ]
+          },
+          "urn:li:domain:Sales": {
+            "allow": [
+              "SALES_DB.*"
+            ]
+          },
+          "urn:li:domain:Analytics": {
+            "allow": [
+              "ANALYTICS_DB.*"
+            ]
+          }
+        },
+        
+        "stateful_ingestion": {
+          "enabled": true,
+          "remove_stale_metadata": true,
+          "fail_safe_threshold": 50.0
+        },
+        
+        "lazy_schema_resolver": true,
+        "use_file_backed_cache": true
+      }
+    },
+    "sink": {
+      "type": "datahub-rest",
+      "config": {
+        "server": "http://datahub-gms:8080"
+      }
+    },
+    "pipeline_name": "snowflake_advanced_ingestion"
+  }

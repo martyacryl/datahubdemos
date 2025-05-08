@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  datahub-snowflake-ingestion:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      # DataHub connection
+      - DATAHUB_GMS_URL=http://datahub-gms:8080
+      
+      # Snowflake credentials
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASS=${SNOWFLAKE_PASS}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
+      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE}
+      
+      # Schedule configuration
+      - SCHEDULE=day.at("01:00")
+      - CONFIG_FILE=/app/config/snowflake_ingestion.json
+      
+      # Monitoring
+      - SLACK_WEBHOOK=${SLACK_WEBHOOK}
+    volumes:
+      - ./config:/app/config
+    command: ["cron"]
+    restart: unless-stopped
+    networks:
+      - datahub_network
+
+  datahub-snowflake-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DATAHUB_GMS_URL=http://datahub-gms:8080
+      - SLACK_WEBHOOK=${SLACK_WEBHOOK}
+    volumes:
+      - ./config:/app/config
+    command: ["monitor"]
+    restart: unless-stopped
+    networks:
+      - datahub_network
+
+networks:
+  datahub_network:
+    external: true
+    name: datahub_network
