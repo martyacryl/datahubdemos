@@ -1,0 +1,9 @@
+{
+  "urn": "urn:li:domain:marketing",
+  "aspect": {
+    "domainProperties": {
+      "name": "Marketing",
+      "description": "Marketing department data assets including campaign analytics, customer segmentation, and attribution models"
+    }
+  }
+}

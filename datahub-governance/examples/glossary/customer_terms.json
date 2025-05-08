@@ -1,0 +1,16 @@
+{
+  "name": "Customer Lifetime Value",
+  "description": "The total worth to a business of a customer over the whole period of their relationship, calculated by multiplying average purchase value, purchase frequency, and average customer lifespan.",
+  "termSource": "INTERNAL",
+  "owners": [
+    {
+      "owner": "urn:li:corpuser:data_governance_lead",
+      "type": "DATAOWNER"
+    }
+  ],
+  "customProperties": {
+    "calculationMethod": "Average Purchase Value × Purchase Frequency × Customer Lifespan",
+    "businessUnit": "Marketing",
+    "dataClassification": "Internal"
+  }
+}

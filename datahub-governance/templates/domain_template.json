@@ -1,0 +1,10 @@
+{
+  "name": "DOMAIN_NAME",
+  "description": "DOMAIN_DESCRIPTION",
+  "owners": [
+    {
+      "owner": "urn:li:corpuser:OWNER_USERNAME",
+      "type": "DATAOWNER"
+    }
+  ]
+}
