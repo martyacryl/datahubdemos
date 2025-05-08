@@ -50,20 +50,20 @@ DataHub provides a comprehensive metadata management platform for your data ecos
 
 Explore the documentation and examples in this repository to set up your DataHub-Snowflake integration:
 
-1. [Setting Up Prerequisites](/docs/prerequisites.md)
-2. [Basic Configuration](/docs/basic-configuration.md)
-3. [Advanced Configuration](/docs/advanced-configuration.md)
-4. [Automated Deployment](/docs/automated-deployment.md)
-5. [Best Practices](/docs/best-practices.md)
+1. [Setting Up Prerequisites](docs/prerequisites.md)
+2. [Basic Configuration](docs/basic-configuration.md)
+3. [Advanced Configuration](docs/advanced-configuration.md)
+4. [Automated Deployment](docs/automated-deployment.md)
+5. [Best Practices](docs/best-practices.md)
 
 ## Example Implementation
 
-Check out the [`examples/`](/examples/) directory for JSON configuration examples and the [`scripts/`](/scripts/) directory for implementation examples.
+Check out the [`examples/`](examples/) directory for JSON configuration examples and the [`scripts/`](scripts/) directory for implementation examples.
 
 ## Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](/CONTRIBUTING.md) for details.
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ## License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](/LICENSE) file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
