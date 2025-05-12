@@ -4,7 +4,7 @@ import requests
 
 # Configuration - modify these values
 GMS_URL = "https://test-environment.acryl.io/gms"  # Note: using HTTPS
-TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhY3RvclR5cGUiOiJVU0VSIiwiYWN0b3JJZCI6Im1hcnR5LnN0am9obkBhY3J5bC5pbyIsInR5cGUiOiJQRVJTT05BTCIsInZlcnNpb24iOiIyIiwianRpIjoiMzBlZTRiOTUtYjg4Ny00ZjgzLWI0YWItNTQxMzlmMTQwNTQ1Iiwic3ViIjoibWFydHkuc3Rqb2huQGFjcnlsLmlvIiwiaXNzIjoiZGF0YWh1Yi1tZXRhZGF0YS1zZXJ2aWNlIn0.UG_Ge9EBtpBdyHhWcantlGCoZLJZgX9E7u49GCeF6CY"  # Replace with your token
+TOKEN = "token"  # Replace with your token
 
 def check_tag(tag_name):
     """
