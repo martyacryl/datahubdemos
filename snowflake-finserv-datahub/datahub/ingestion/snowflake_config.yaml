@@ -1,0 +1,54 @@
+# File: datahub/ingestion/snowflake_config.yaml
+# Purpose: Configuration for ingesting Snowflake metadata into DataHub
+
+source:
+  type: snowflake
+  config:
+    # Snowflake connection config
+    account_id: "<your-snowflake-account-id>"  # e.g., xy12345.us-east-1
+    username: "DATAHUB_USER"
+    password: "${SNOWFLAKE_PASSWORD}"  # Set this as an environment variable
+    role: "DATAHUB_ROLE"
+    warehouse: "DATAHUB_WH"
+    
+    # Database/schema selection
+    database_pattern:
+      allow:
+        - "FINSERV_DEMO"
+    
+    # Extraction options
+    include_table_lineage: true  # Extract table-level lineage
+    include_column_lineage: true  # Extract column-level lineage
+    include_views: true  # Include views in metadata extraction
+    include_usage_stats: true  # Include query history and usage statistics
+    include_technical_schema: true  # Include schema details
+    extract_tags: true  # Extract tags created in Snowflake
+    
+    # Profiling options (for column statistics)
+    profile_table_level_only: false  # Allow column-level profiling
+    profile_sample: 50  # Profile using a 50% sample of data
+    profile_table_size_limit: 1000000000  # Only profile tables up to 1 GB
+    
+    # Advanced lineage options
+    igore_start_time_lineage: true  # Include all historical lineage
+    max_lineage_duration_days: 30  # Include lineage from the last 30 days
+    include_external_url: true  # Include deep links to Snowflake UI
+
+sink:
+  type: datahub-rest
+  config:
+    server: "https://test-environment.acryl.io"
+    token: "${DATAHUB_PAT}"  # Set this as an environment variable
+
+# Define transformation steps to apply during ingestion
+transformers:
+  - type: add-dataset-ownership
+    config:
+      owner_urns:
+        - "urn:li:corpuser:financial_data_team"
+      ownership_type: "DEVELOPER"
+  
+  # Add domain/group membership for financial services datasets
+  - type: simple-dataset-ownership
+    config:
+      domain_urn: "urn:li:domain:financial_services"

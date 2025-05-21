@@ -1,0 +1,29 @@
+{
+  "domains": [
+    {
+      "name": "Financial Services",
+      "id": "financial_services",
+      "description": "Data related to financial services operations and analytics."
+    },
+    {
+      "name": "Trading",
+      "id": "trading",
+      "description": "Data related to trading operations, positions, and performance."
+    },
+    {
+      "name": "Risk Management",
+      "id": "risk_management",
+      "description": "Data related to risk analysis, compliance, and monitoring."
+    },
+    {
+      "name": "Market Data",
+      "id": "market_data",
+      "description": "External market data, prices, and reference information."
+    },
+    {
+      "name": "Financial Reporting",
+      "id": "financial_reporting",
+      "description": "Data used for financial and regulatory reporting."
+    }
+  ]
+}
