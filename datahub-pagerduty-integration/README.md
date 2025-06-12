@@ -1,2 +1,3 @@
 # DataHub PagerDuty Integration
-PASTE THE README CONTENT HERE
+
+Automatically send PagerDuty incidents when critical data events occur in DataHub Cloud.
