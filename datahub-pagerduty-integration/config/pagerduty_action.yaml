@@ -1,2 +1,8 @@
-# PASTE THE YAML CONFIGURATION HERE
+# DataHub Cloud PagerDuty Action Configuration
+name: "datahub_pagerduty_action"
+enabled: true
+
+# Event source configuration for DataHub Cloud
+source:
+  type: "datahub-rest"# PASTE THE YAML CONFIGURATION HERE
 # This is where you will paste the DataHub Actions configuration
