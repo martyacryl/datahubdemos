@@ -1,0 +1,10 @@
+source:
+  type: "json"
+  config:
+    filename: "/Users/mstjohn/Documents/GitHub/datahubdemos/metadata_generator_project/src/metadata_output.jsonl"
+
+sink:
+  type: "datahub-rest"
+  config:
+    server: "https://longtailcompanions.acryl.io/gms"
+    token: "eyJhbGciOiJIUzI1NiJ9.eyJhY3RvclR5cGUiOiJVU0VSIiwiYWN0b3JJZCI6Im1hcnR5LnN0am9obkBhY3J5bC5pbyIsInR5cGUiOiJQRVJTT05BTCIsInZlcnNpb24iOiIyIiwianRpIjoiM2U0YjBkZWMtMWY5My00OWU4LTk5ZTctZmNhYTlmZDhlMDI1Iiwic3ViIjoibWFydHkuc3Rqb2huQGFjcnlsLmlvIiwiaXNzIjoiZGF0YWh1Yi1tZXRhZGF0YS1zZXJ2aWNlIn0.ly6DInjIuBcVNPHcX_vcRTFNkWlAi_LTDPTmGwINXPo" 

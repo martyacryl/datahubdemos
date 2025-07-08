@@ -1,0 +1,972 @@
+[
+  {
+    "entityType": "dataPlatform",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dataPlatform:mssql",
+    "aspectName": "dataPlatformInfo",
+    "aspect": {
+      "name": "mssql",
+      "displayName": "SQL Server",
+      "type": "RELATIONAL_DB",
+      "datasetNameDelimiter": ".",
+      "logoUrl": "https://logos-world.net/wp-content/uploads/2021/03/Microsoft-SQL-Server-Logo.png"
+    }
+  },
+  {
+    "entityType": "dataset",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:mssql,FinanceDB.dbo.general_ledger,PROD)",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "customProperties": {
+        "domain": "finance",
+        "database": "FinanceDB",
+        "schema": "dbo",
+        "platform": "mssql",
+        "env": "PROD"
+      },
+      "name": "general_ledger",
+      "qualifiedName": "FinanceDB.dbo.general_ledger",
+      "description": "Chart of accounts and general ledger entries",
+      "tags": []
+    }
+  },
+  {
+    "entityType": "dataset",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:mssql,FinanceDB.dbo.general_ledger,PROD)",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "schemaName": "general_ledger",
+      "platform": "urn:li:dataPlatform:mssql",
+      "version": 1,
+      "created": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      },
+      "lastModified": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      },
+      "hash": "5c1fac2f-31d8-4c44-9887-ce60b30e34ec",
+      "fields": [
+        {
+          "fieldPath": "account_id",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "INT",
+          "description": "Unique account identifier"
+        },
+        {
+          "fieldPath": "account_name",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "VARCHAR(100)",
+          "description": "Account name"
+        },
+        {
+          "fieldPath": "balance",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "DECIMAL(15,2)",
+          "description": "Current account balance"
+        },
+        {
+          "fieldPath": "fiscal_year",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "INT",
+          "description": "Fiscal year"
+        }
+      ]
+    }
+  },
+  {
+    "entityType": "dataset",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:mssql,FinanceDB.dbo.budget_allocations,PROD)",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "customProperties": {
+        "domain": "finance",
+        "database": "FinanceDB",
+        "schema": "dbo",
+        "platform": "mssql",
+        "env": "PROD"
+      },
+      "name": "budget_allocations",
+      "qualifiedName": "FinanceDB.dbo.budget_allocations",
+      "description": "Department budget allocations and spending",
+      "tags": []
+    }
+  },
+  {
+    "entityType": "dataset",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:mssql,FinanceDB.dbo.budget_allocations,PROD)",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "schemaName": "budget_allocations",
+      "platform": "urn:li:dataPlatform:mssql",
+      "version": 1,
+      "created": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      },
+      "lastModified": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      },
+      "hash": "fa63491f-2b2a-4185-a339-d1a85535242a",
+      "fields": [
+        {
+          "fieldPath": "budget_id",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "INT",
+          "description": "Unique budget identifier"
+        },
+        {
+          "fieldPath": "department_id",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "INT",
+          "description": "Department identifier"
+        },
+        {
+          "fieldPath": "allocated_amount",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "DECIMAL(15,2)",
+          "description": "Budget allocation"
+        },
+        {
+          "fieldPath": "spent_amount",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "DECIMAL(15,2)",
+          "description": "Amount spent"
+        }
+      ]
+    }
+  },
+  {
+    "entityType": "dataset",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:mssql,FinanceDB.dbo.financial_reports,PROD)",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "customProperties": {
+        "domain": "finance",
+        "database": "FinanceDB",
+        "schema": "dbo",
+        "platform": "mssql",
+        "env": "PROD"
+      },
+      "name": "financial_reports",
+      "qualifiedName": "FinanceDB.dbo.financial_reports",
+      "description": "Monthly and quarterly financial reports",
+      "tags": []
+    }
+  },
+  {
+    "entityType": "dataset",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:mssql,FinanceDB.dbo.financial_reports,PROD)",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "schemaName": "financial_reports",
+      "platform": "urn:li:dataPlatform:mssql",
+      "version": 1,
+      "created": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      },
+      "lastModified": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      },
+      "hash": "1bb8b4e3-7713-4a08-8ffa-6db73acadc7c",
+      "fields": [
+        {
+          "fieldPath": "report_id",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "INT",
+          "description": "Unique report identifier"
+        },
+        {
+          "fieldPath": "report_date",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "DATE",
+          "description": "Report generation date"
+        },
+        {
+          "fieldPath": "revenue",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "DECIMAL(15,2)",
+          "description": "Total revenue"
+        },
+        {
+          "fieldPath": "expenses",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "DECIMAL(15,2)",
+          "description": "Total expenses"
+        }
+      ]
+    }
+  },
+  {
+    "entityType": "dashboard",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dashboard:(powerbi,Financial_Performance_Dashboard,PROD)",
+    "aspectName": "dashboardInfo",
+    "aspect": {
+      "customProperties": {
+        "domain": "finance",
+        "platform": "powerbi",
+        "env": "PROD"
+      },
+      "title": "Financial Performance Dashboard",
+      "description": "Comprehensive view of financial metrics and KPIs",
+      "tool": "powerbi",
+      "lastModified": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      }
+    }
+  },
+  {
+    "entityType": "dashboard",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dashboard:(powerbi,Financial_Performance_Dashboard,PROD)",
+    "aspectName": "upstreamLineage",
+    "aspect": {
+      "upstreams": [
+        {
+          "dataset": "urn:li:dataset:(urn:li:dataPlatform:mssql,FinanceDB.dbo.general_ledger,PROD)",
+          "type": "TRANSFORMED"
+        },
+        {
+          "dataset": "urn:li:dataset:(urn:li:dataPlatform:mssql,FinanceDB.dbo.financial_reports,PROD)",
+          "type": "TRANSFORMED"
+        }
+      ]
+    }
+  },
+  {
+    "entityType": "dashboard",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dashboard:(powerbi,Budget_Analysis_Dashboard,PROD)",
+    "aspectName": "dashboardInfo",
+    "aspect": {
+      "customProperties": {
+        "domain": "finance",
+        "platform": "powerbi",
+        "env": "PROD"
+      },
+      "title": "Budget Analysis Dashboard",
+      "description": "Budget vs actual spending analysis",
+      "tool": "powerbi",
+      "lastModified": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      }
+    }
+  },
+  {
+    "entityType": "dashboard",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dashboard:(powerbi,Budget_Analysis_Dashboard,PROD)",
+    "aspectName": "upstreamLineage",
+    "aspect": {
+      "upstreams": [
+        {
+          "dataset": "urn:li:dataset:(urn:li:dataPlatform:mssql,FinanceDB.dbo.budget_allocations,PROD)",
+          "type": "TRANSFORMED"
+        },
+        {
+          "dataset": "urn:li:dataset:(urn:li:dataPlatform:mssql,FinanceDB.dbo.general_ledger,PROD)",
+          "type": "TRANSFORMED"
+        }
+      ]
+    }
+  },
+  {
+    "entityType": "dataset",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:mssql,EngineeringDB.dbo.projects,PROD)",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "customProperties": {
+        "domain": "engineering",
+        "database": "EngineeringDB",
+        "schema": "dbo",
+        "platform": "mssql",
+        "env": "PROD"
+      },
+      "name": "projects",
+      "qualifiedName": "EngineeringDB.dbo.projects",
+      "description": "Engineering projects and their details",
+      "tags": []
+    }
+  },
+  {
+    "entityType": "dataset",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:mssql,EngineeringDB.dbo.projects,PROD)",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "schemaName": "projects",
+      "platform": "urn:li:dataPlatform:mssql",
+      "version": 1,
+      "created": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      },
+      "lastModified": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      },
+      "hash": "2c84a031-b7bb-4751-a598-bd36b38ed2d1",
+      "fields": [
+        {
+          "fieldPath": "project_id",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "INT",
+          "description": "Unique project identifier"
+        },
+        {
+          "fieldPath": "project_name",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "VARCHAR(100)",
+          "description": "Project name"
+        },
+        {
+          "fieldPath": "status",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "VARCHAR(20)",
+          "description": "Planning, Active, Completed"
+        },
+        {
+          "fieldPath": "budget",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "DECIMAL(15,2)",
+          "description": "Project budget"
+        }
+      ]
+    }
+  },
+  {
+    "entityType": "dataset",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:mssql,EngineeringDB.dbo.team_members,PROD)",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "customProperties": {
+        "domain": "engineering",
+        "database": "EngineeringDB",
+        "schema": "dbo",
+        "platform": "mssql",
+        "env": "PROD"
+      },
+      "name": "team_members",
+      "qualifiedName": "EngineeringDB.dbo.team_members",
+      "description": "Engineering team members and their assignments",
+      "tags": []
+    }
+  },
+  {
+    "entityType": "dataset",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:mssql,EngineeringDB.dbo.team_members,PROD)",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "schemaName": "team_members",
+      "platform": "urn:li:dataPlatform:mssql",
+      "version": 1,
+      "created": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      },
+      "lastModified": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      },
+      "hash": "9bee4ce1-5e0c-4620-9778-7534acec09e1",
+      "fields": [
+        {
+          "fieldPath": "member_id",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "INT",
+          "description": "Team member identifier"
+        },
+        {
+          "fieldPath": "name",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "VARCHAR(100)",
+          "description": "Team member name"
+        },
+        {
+          "fieldPath": "role",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "VARCHAR(50)",
+          "description": "Engineering role"
+        },
+        {
+          "fieldPath": "project_id",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "INT",
+          "description": "Assigned project"
+        }
+      ]
+    }
+  },
+  {
+    "entityType": "dataset",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:mssql,EngineeringDB.dbo.sprint_metrics,PROD)",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "customProperties": {
+        "domain": "engineering",
+        "database": "EngineeringDB",
+        "schema": "dbo",
+        "platform": "mssql",
+        "env": "PROD"
+      },
+      "name": "sprint_metrics",
+      "qualifiedName": "EngineeringDB.dbo.sprint_metrics",
+      "description": "Agile sprint performance metrics",
+      "tags": []
+    }
+  },
+  {
+    "entityType": "dataset",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:mssql,EngineeringDB.dbo.sprint_metrics,PROD)",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "schemaName": "sprint_metrics",
+      "platform": "urn:li:dataPlatform:mssql",
+      "version": 1,
+      "created": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      },
+      "lastModified": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      },
+      "hash": "dbae578a-edac-47b4-89b0-7722462d4ea5",
+      "fields": [
+        {
+          "fieldPath": "sprint_id",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "INT",
+          "description": "Sprint identifier"
+        },
+        {
+          "fieldPath": "velocity",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "INT",
+          "description": "Sprint velocity"
+        },
+        {
+          "fieldPath": "burndown",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "DECIMAL(5,2)",
+          "description": "Burndown percentage"
+        },
+        {
+          "fieldPath": "project_id",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "INT",
+          "description": "Associated project"
+        }
+      ]
+    }
+  },
+  {
+    "entityType": "dashboard",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dashboard:(powerbi,Project_Portfolio_Dashboard,PROD)",
+    "aspectName": "dashboardInfo",
+    "aspect": {
+      "customProperties": {
+        "domain": "engineering",
+        "platform": "powerbi",
+        "env": "PROD"
+      },
+      "title": "Project Portfolio Dashboard",
+      "description": "Overview of all engineering projects and their status",
+      "tool": "powerbi",
+      "lastModified": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      }
+    }
+  },
+  {
+    "entityType": "dashboard",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dashboard:(powerbi,Project_Portfolio_Dashboard,PROD)",
+    "aspectName": "upstreamLineage",
+    "aspect": {
+      "upstreams": [
+        {
+          "dataset": "urn:li:dataset:(urn:li:dataPlatform:mssql,EngineeringDB.dbo.projects,PROD)",
+          "type": "TRANSFORMED"
+        },
+        {
+          "dataset": "urn:li:dataset:(urn:li:dataPlatform:mssql,EngineeringDB.dbo.team_members,PROD)",
+          "type": "TRANSFORMED"
+        }
+      ]
+    }
+  },
+  {
+    "entityType": "dashboard",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dashboard:(powerbi,Sprint_Performance_Dashboard,PROD)",
+    "aspectName": "dashboardInfo",
+    "aspect": {
+      "customProperties": {
+        "domain": "engineering",
+        "platform": "powerbi",
+        "env": "PROD"
+      },
+      "title": "Sprint Performance Dashboard",
+      "description": "Sprint metrics and team performance tracking",
+      "tool": "powerbi",
+      "lastModified": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      }
+    }
+  },
+  {
+    "entityType": "dashboard",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dashboard:(powerbi,Sprint_Performance_Dashboard,PROD)",
+    "aspectName": "upstreamLineage",
+    "aspect": {
+      "upstreams": [
+        {
+          "dataset": "urn:li:dataset:(urn:li:dataPlatform:mssql,EngineeringDB.dbo.sprint_metrics,PROD)",
+          "type": "TRANSFORMED"
+        },
+        {
+          "dataset": "urn:li:dataset:(urn:li:dataPlatform:mssql,EngineeringDB.dbo.team_members,PROD)",
+          "type": "TRANSFORMED"
+        }
+      ]
+    }
+  },
+  {
+    "entityType": "dataset",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:mssql,DataScienceDB.dbo.model_registry,PROD)",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "customProperties": {
+        "domain": "data_science",
+        "database": "DataScienceDB",
+        "schema": "dbo",
+        "platform": "mssql",
+        "env": "PROD"
+      },
+      "name": "model_registry",
+      "qualifiedName": "DataScienceDB.dbo.model_registry",
+      "description": "ML model registry with metadata",
+      "tags": []
+    }
+  },
+  {
+    "entityType": "dataset",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:mssql,DataScienceDB.dbo.model_registry,PROD)",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "schemaName": "model_registry",
+      "platform": "urn:li:dataPlatform:mssql",
+      "version": 1,
+      "created": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      },
+      "lastModified": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      },
+      "hash": "ce88324a-e8be-4ba7-9216-abd517f887e4",
+      "fields": [
+        {
+          "fieldPath": "model_id",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "INT",
+          "description": "Model identifier"
+        },
+        {
+          "fieldPath": "model_name",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "VARCHAR(100)",
+          "description": "Model name"
+        },
+        {
+          "fieldPath": "accuracy",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "DECIMAL(5,4)",
+          "description": "Model accuracy"
+        },
+        {
+          "fieldPath": "created_date",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "DATETIME",
+          "description": "Model creation date"
+        }
+      ]
+    }
+  },
+  {
+    "entityType": "dataset",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:mssql,DataScienceDB.dbo.experiments,PROD)",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "customProperties": {
+        "domain": "data_science",
+        "database": "DataScienceDB",
+        "schema": "dbo",
+        "platform": "mssql",
+        "env": "PROD"
+      },
+      "name": "experiments",
+      "qualifiedName": "DataScienceDB.dbo.experiments",
+      "description": "ML experiments and their results",
+      "tags": []
+    }
+  },
+  {
+    "entityType": "dataset",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:mssql,DataScienceDB.dbo.experiments,PROD)",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "schemaName": "experiments",
+      "platform": "urn:li:dataPlatform:mssql",
+      "version": 1,
+      "created": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      },
+      "lastModified": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      },
+      "hash": "a7da96c3-9135-4757-b6ba-70a29187be33",
+      "fields": [
+        {
+          "fieldPath": "experiment_id",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "INT",
+          "description": "Experiment identifier"
+        },
+        {
+          "fieldPath": "model_id",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "INT",
+          "description": "Associated model"
+        },
+        {
+          "fieldPath": "parameters",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "TEXT",
+          "description": "Experiment parameters"
+        },
+        {
+          "fieldPath": "score",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "DECIMAL(5,4)",
+          "description": "Experiment score"
+        }
+      ]
+    }
+  },
+  {
+    "entityType": "dataset",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:mssql,DataScienceDB.dbo.feature_store,PROD)",
+    "aspectName": "datasetProperties",
+    "aspect": {
+      "customProperties": {
+        "domain": "data_science",
+        "database": "DataScienceDB",
+        "schema": "dbo",
+        "platform": "mssql",
+        "env": "PROD"
+      },
+      "name": "feature_store",
+      "qualifiedName": "DataScienceDB.dbo.feature_store",
+      "description": "Feature store for ML pipelines",
+      "tags": []
+    }
+  },
+  {
+    "entityType": "dataset",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dataset:(urn:li:dataPlatform:mssql,DataScienceDB.dbo.feature_store,PROD)",
+    "aspectName": "schemaMetadata",
+    "aspect": {
+      "schemaName": "feature_store",
+      "platform": "urn:li:dataPlatform:mssql",
+      "version": 1,
+      "created": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      },
+      "lastModified": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      },
+      "hash": "a1cf46b0-4594-4a11-87f0-5cefa4d926fb",
+      "fields": [
+        {
+          "fieldPath": "feature_id",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "INT",
+          "description": "Feature identifier"
+        },
+        {
+          "fieldPath": "feature_name",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "VARCHAR(100)",
+          "description": "Feature name"
+        },
+        {
+          "fieldPath": "data_type",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "VARCHAR(50)",
+          "description": "Feature data type"
+        },
+        {
+          "fieldPath": "importance",
+          "type": {
+            "type": {
+              "com.linkedin.schema.StringType": {}
+            }
+          },
+          "nativeDataType": "DECIMAL(5,4)",
+          "description": "Feature importance"
+        }
+      ]
+    }
+  },
+  {
+    "entityType": "dashboard",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dashboard:(powerbi,ML_Model_Performance_Dashboard,PROD)",
+    "aspectName": "dashboardInfo",
+    "aspect": {
+      "customProperties": {
+        "domain": "data_science",
+        "platform": "powerbi",
+        "env": "PROD"
+      },
+      "title": "ML Model Performance Dashboard",
+      "description": "Machine learning model performance tracking",
+      "tool": "powerbi",
+      "lastModified": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      }
+    }
+  },
+  {
+    "entityType": "dashboard",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dashboard:(powerbi,ML_Model_Performance_Dashboard,PROD)",
+    "aspectName": "upstreamLineage",
+    "aspect": {
+      "upstreams": [
+        {
+          "dataset": "urn:li:dataset:(urn:li:dataPlatform:mssql,DataScienceDB.dbo.model_registry,PROD)",
+          "type": "TRANSFORMED"
+        },
+        {
+          "dataset": "urn:li:dataset:(urn:li:dataPlatform:mssql,DataScienceDB.dbo.experiments,PROD)",
+          "type": "TRANSFORMED"
+        }
+      ]
+    }
+  },
+  {
+    "entityType": "dashboard",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dashboard:(powerbi,Feature_Analytics_Dashboard,PROD)",
+    "aspectName": "dashboardInfo",
+    "aspect": {
+      "customProperties": {
+        "domain": "data_science",
+        "platform": "powerbi",
+        "env": "PROD"
+      },
+      "title": "Feature Analytics Dashboard",
+      "description": "Feature store usage and importance analytics",
+      "tool": "powerbi",
+      "lastModified": {
+        "time": 1751948267055,
+        "actor": "urn:li:corpuser:datahub"
+      }
+    }
+  },
+  {
+    "entityType": "dashboard",
+    "changeType": "UPSERT",
+    "entityUrn": "urn:li:dashboard:(powerbi,Feature_Analytics_Dashboard,PROD)",
+    "aspectName": "upstreamLineage",
+    "aspect": {
+      "upstreams": [
+        {
+          "dataset": "urn:li:dataset:(urn:li:dataPlatform:mssql,DataScienceDB.dbo.feature_store,PROD)",
+          "type": "TRANSFORMED"
+        },
+        {
+          "dataset": "urn:li:dataset:(urn:li:dataPlatform:mssql,DataScienceDB.dbo.model_registry,PROD)",
+          "type": "TRANSFORMED"
+        }
+      ]
+    }
+  }
+]
