@@ -41,16 +41,20 @@ class PagerDutyAction(Action):
     def __init__(self, config: Dict[str, Any], ctx: PipelineContext):
         super().__init__()
         self.ctx = ctx
+        # Initialize PagerDuty configuration
         self.routing_key = config.get("routing_key")
-        self.base_url = config.get("base_url", "https://fieldeng.acryl.io")
-        self.datahub_server = config.get("datahub_server", "https://fieldeng.acryl.io/gms")
+        if not self.routing_key:
+            raise ValueError("PagerDuty routing_key is required")
+        
+        self.base_url = config.get("base_url", "https://<namespace>.acryl.io")
+        self.datahub_server = config.get("datahub_server", "https://<namespace>.acryl.io/gms")
         self.datahub_token = config.get("datahub_token")
         self.pagerduty_api_url = "https://events.pagerduty.com/v2/enqueue"
         
         # Severity mapping for different event categories
         self.severity_mapping = config.get("severity_mapping", {
             "TECHNICAL_SCHEMA": "warning",    # Schema changes
-            "OWNERSHIP": "info",              # Ownership changes
+            "OWNER": "info",                  # Ownership changes
             "DEPRECATION": "warning",         # Asset deprecations
             "TAG": "info",                    # Tag changes
             "DOMAIN": "info",                 # Domain changes
@@ -72,9 +76,6 @@ class PagerDutyAction(Action):
         self.retry_delay = config.get("retry_delay", 1)
         
         # Validate required configuration
-        if not self.routing_key:
-            raise ValueError("routing_key is required for PagerDuty integration")
-        
         if not self.datahub_token:
             raise ValueError("datahub_token is required for DataHub Cloud integration")
         
@@ -121,7 +122,7 @@ class PagerDutyAction(Action):
         trigger_categories = [
             "TECHNICAL_SCHEMA",  # Schema changes
             "DEPRECATION",       # Asset deprecations
-            "OWNERSHIP",         # Ownership changes
+            "OWNER",             # Ownership changes
             "TAG",               # Tag changes (especially PII)
             "DOMAIN",            # Domain changes
             "LIFECYCLE"          # Lifecycle changes
@@ -151,7 +152,7 @@ class PagerDutyAction(Action):
             return True
         
         # Trigger on ownership changes
-        if category == "OWNERSHIP" and operation in ["ADD", "MODIFY"]:
+        if category == "OWNER" and operation in ["ADD", "MODIFY"]:
             return True
         
         # Trigger on critical tag changes (like PII)
@@ -330,7 +331,7 @@ class PagerDutyAction(Action):
             return f"Schema change detected in {component}"
         elif category == "DEPRECATION":
             return f"Asset deprecated: {component}"
-        elif category == "OWNERSHIP":
+        elif category == "OWNER":
             return f"Ownership change in {component}"
         elif category == "TAG":
             modifier = event_data.get("modifier", "")

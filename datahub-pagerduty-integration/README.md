@@ -4,7 +4,7 @@
 
 This integration bridges DataHub Cloud with PagerDuty to provide real-time alerting and incident management for critical data events. When something goes wrong with your data—schema changes, ownership issues, or asset deprecations—your team gets immediately notified through PagerDuty's proven alerting system.
 
-## �� Why This Integration Matters
+## 🎯 Why This Integration Matters
 
 ### The Problem
 Modern data teams manage hundreds of datasets across multiple platforms. When critical data issues occur:
@@ -66,8 +66,8 @@ This integration only supports **EntityChangeEvent_v1** events, which include:
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   DataHub Cloud │    │ Actions Framework│    │   PagerDuty     │
-│  (fieldeng.acryl│───▶│  (Your Computer) │───▶│   Incidents     │
-│      .io)       │    │                 │    │                 │
+│  (<namespace>.ac│───▶│  (Your Computer) │───▶│   Incidents     │
+│      ryl.io)    │    │                 │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │                       │
          │                       │                       │
@@ -94,7 +94,7 @@ This integration only supports **EntityChangeEvent_v1** events, which include:
 ## 🚀 Quick Start
 
 ### Prerequisites
-- DataHub Cloud account access (`fieldeng.acryl.io`)
+- DataHub Cloud account access (`<namespace>.acryl.io`)
 - Personal Access Token from DataHub Cloud  
 - PagerDuty account with Events API v2 service
 - Python 3.8+
@@ -115,7 +115,7 @@ pip install -r requirements.txt
 
 ### 2. Configure DataHub Cloud Access
 
-1. Log into DataHub Cloud at `https://fieldeng.acryl.io`
+1. Log into DataHub Cloud at `https://<namespace>.acryl.io`
 2. Navigate to **Settings** → **Access Tokens**
 3. Click **Generate new token**
 4. Name: "PagerDuty Integration"
@@ -186,7 +186,7 @@ The integration can be configured to monitor specific types of events. Edit `con
 filter:
   event_type: "EntityChangeEvent_v1"
   event:
-    category: ["TAG", "OWNERSHIP", "DEPRECATION"]
+    category: ["TAG", "OWNER", "DEPRECATION"]
 ```
 
 ### Severity Mapping
@@ -197,7 +197,7 @@ action:
   config:
     severity_mapping:
       schema_change: "warning"        # Schema changes are warnings
-      ownership_change: "info"        # Ownership changes are info
+      owner_change: "info"            # Ownership changes are info
       deprecation: "warning"          # Deprecations are warnings
       tag_change: "info"              # Tag changes are info
 ```
@@ -249,7 +249,7 @@ from dotenv import load_dotenv
 load_dotenv()
 token = os.getenv('DATAHUB_GMS_TOKEN')
 headers = {'Authorization': f'Bearer {token}'}
-response = requests.get('https://fieldeng.acryl.io/gms/health', headers=headers)
+response = requests.get('https://<namespace>.acryl.io/gms/health', headers=headers)
 print(f'DataHub Health: {response.status_code}')
 "
 
@@ -362,7 +362,7 @@ def act(self, event: EventEnvelope) -> None:
             "severity": self._get_severity(event),
             "component": self._extract_component(entity_urn),
             "custom_details": {
-                "entity_url": f"https://fieldeng.acryl.io/dataset/{entity_urn}",
+                "entity_url": f"https://<namespace>.acryl.io/dataset/{entity_urn}",
                 "category": category,
                 "timestamp": datetime.utcnow().isoformat()
             }
@@ -471,7 +471,7 @@ ps aux | grep datahub_pagerduty
 
 # Check DataHub Cloud connectivity
 curl -H "Authorization: Bearer $DATAHUB_GMS_TOKEN" \
-     https://fieldeng.acryl.io/gms/health
+     https://<namespace>.acryl.io/gms/health
 
 # Check PagerDuty Events API
 curl -X POST https://events.pagerduty.com/v2/enqueue \
