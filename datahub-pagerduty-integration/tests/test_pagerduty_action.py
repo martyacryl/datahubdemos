@@ -85,7 +85,7 @@ class TestPagerDutyAction:
     def test_get_severity_mapping(self):
         """Test severity mapping for different categories."""
         assert self.action._get_severity({"category": "TECHNICAL_SCHEMA"}) == "warning"
-        assert self.action._get_severity({"category": "OWNERSHIP"}) == "info"
+        assert self.action._get_severity({"category": "OWNER"}) == "info"
         assert self.action._get_severity({"category": "DEPRECATION"}) == "warning"
         assert self.action._get_severity({"category": "UNKNOWN"}) == "warning"  # default
     

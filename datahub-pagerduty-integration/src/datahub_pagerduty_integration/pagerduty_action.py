@@ -54,7 +54,7 @@ class PagerDutyAction(Action):
         # Severity mapping for different event categories
         self.severity_mapping = config.get("severity_mapping", {
             "TECHNICAL_SCHEMA": "warning",    # Schema changes
-            "OWNERSHIP": "info",              # Ownership changes
+            "OWNER": "info",                  # Ownership changes
             "DEPRECATION": "warning",         # Asset deprecations
             "TAG": "info",                    # Tag changes
             "DOMAIN": "info",                 # Domain changes
@@ -122,7 +122,7 @@ class PagerDutyAction(Action):
         trigger_categories = [
             "TECHNICAL_SCHEMA",  # Schema changes
             "DEPRECATION",       # Asset deprecations
-            "OWNERSHIP",         # Ownership changes
+            "OWNER",             # Ownership changes
             "TAG",               # Tag changes (especially PII)
             "DOMAIN",            # Domain changes
             "LIFECYCLE"          # Lifecycle changes
@@ -152,7 +152,7 @@ class PagerDutyAction(Action):
             return True
         
         # Trigger on ownership changes
-        if category == "OWNERSHIP" and operation in ["ADD", "MODIFY"]:
+        if category == "OWNER" and operation in ["ADD", "MODIFY"]:
             return True
         
         # Trigger on critical tag changes (like PII)
@@ -331,7 +331,7 @@ class PagerDutyAction(Action):
             return f"Schema change detected in {component}"
         elif category == "DEPRECATION":
             return f"Asset deprecated: {component}"
-        elif category == "OWNERSHIP":
+        elif category == "OWNER":
             return f"Ownership change in {component}"
         elif category == "TAG":
             modifier = event_data.get("modifier", "")

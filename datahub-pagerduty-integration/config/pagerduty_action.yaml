@@ -17,7 +17,7 @@ source:
     # Filter for specific categories of interest
     filter:
       event:
-        category: ["TECHNICAL_SCHEMA", "DEPRECATION", "OWNERSHIP", "TAG", "DOMAIN", "LIFECYCLE"]
+        category: ["TECHNICAL_SCHEMA", "DEPRECATION", "OWNER", "TAG", "DOMAIN", "LIFECYCLE"]
 
 # Action configuration
 action:
@@ -31,7 +31,7 @@ action:
     severity_mapping:
       TECHNICAL_SCHEMA: "warning"    # Schema changes are warnings
       DEPRECATION: "warning"         # Deprecations are warnings
-      OWNERSHIP: "info"              # Ownership changes are info
+      OWNER: "info"                  # Ownership changes are info
       TAG: "info"                    # Tag changes are info
       DOMAIN: "info"                 # Domain changes are info
       LIFECYCLE: "warning"           # Lifecycle changes are warnings

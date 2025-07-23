@@ -186,7 +186,7 @@ The integration can be configured to monitor specific types of events. Edit `con
 filter:
   event_type: "EntityChangeEvent_v1"
   event:
-    category: ["TAG", "OWNERSHIP", "DEPRECATION"]
+    category: ["TAG", "OWNER", "DEPRECATION"]
 ```
 
 ### Severity Mapping
@@ -197,7 +197,7 @@ action:
   config:
     severity_mapping:
       schema_change: "warning"        # Schema changes are warnings
-      ownership_change: "info"        # Ownership changes are info
+      owner_change: "info"            # Ownership changes are info
       deprecation: "warning"          # Deprecations are warnings
       tag_change: "info"              # Tag changes are info
 ```
