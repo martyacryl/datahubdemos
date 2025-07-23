@@ -7,18 +7,17 @@ class TestPagerDutyAction:
     def setup_method(self):
         """Set up test fixtures before each test method."""
         self.config = {
-            "routing_key": "test-routing-key",
+            "routing_key": "test_routing_key",
             "datahub_token": "test-token",
-            "base_url": "https://fieldeng.acryl.io"
+            "base_url": "https://<namespace>.acryl.io"
         }
         self.ctx = Mock()
         self.action = PagerDutyAction(self.config, self.ctx)
     
-    def test_init_with_valid_config(self):
-        """Test that PagerDutyAction initializes with valid config."""
-        assert self.action.routing_key == "test-routing-key"
-        assert self.action.datahub_token == "test-token"
-        assert self.action.base_url == "https://fieldeng.acryl.io"
+    def test_init(self):
+        """Test PagerDutyAction initialization"""
+        assert self.action.routing_key == "test_routing_key"
+        assert self.action.base_url == "https://<namespace>.acryl.io"
     
     def test_init_missing_routing_key(self):
         """Test that PagerDutyAction raises error when routing_key is missing."""

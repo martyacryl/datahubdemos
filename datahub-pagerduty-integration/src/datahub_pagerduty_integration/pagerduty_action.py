@@ -41,9 +41,13 @@ class PagerDutyAction(Action):
     def __init__(self, config: Dict[str, Any], ctx: PipelineContext):
         super().__init__()
         self.ctx = ctx
+        # Initialize PagerDuty configuration
         self.routing_key = config.get("routing_key")
-        self.base_url = config.get("base_url", "https://fieldeng.acryl.io")
-        self.datahub_server = config.get("datahub_server", "https://fieldeng.acryl.io/gms")
+        if not self.routing_key:
+            raise ValueError("PagerDuty routing_key is required")
+        
+        self.base_url = config.get("base_url", "https://<namespace>.acryl.io")
+        self.datahub_server = config.get("datahub_server", "https://<namespace>.acryl.io/gms")
         self.datahub_token = config.get("datahub_token")
         self.pagerduty_api_url = "https://events.pagerduty.com/v2/enqueue"
         
@@ -72,9 +76,6 @@ class PagerDutyAction(Action):
         self.retry_delay = config.get("retry_delay", 1)
         
         # Validate required configuration
-        if not self.routing_key:
-            raise ValueError("routing_key is required for PagerDuty integration")
-        
         if not self.datahub_token:
             raise ValueError("datahub_token is required for DataHub Cloud integration")
         
