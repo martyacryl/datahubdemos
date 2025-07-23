@@ -2,6 +2,7 @@
 import requests
 import json
 import logging
+import time
 from typing import Dict, Any, Optional
 from datetime import datetime
 
@@ -16,8 +17,11 @@ class PagerDutyAction(Action):
     DataHub Action that sends incidents to PagerDuty when critical data events occur.
     
     This action integrates with PagerDuty Events API v2 to create, update, and resolve
-    incidents based on DataHub metadata events like schema changes, data quality failures,
+    incidents based on DataHub Cloud EntityChangeEvent_v1 events like schema changes, 
     ownership changes, and asset deprecations.
+    
+    Note: This integration only supports EntityChangeEvent_v1 events from DataHub Cloud.
+    Data quality assertions and other Observe features are not accessible via REST API.
     """
     
     @classmethod
@@ -28,7 +32,7 @@ class PagerDutyAction(Action):
         Expected config:
         - routing_key: PagerDuty Integration Key (Events API v2)
         - base_url: DataHub UI base URL for generating links
-        - severity_mapping: Optional mapping of event types to PagerDuty severities
+        - severity_mapping: Optional mapping of event categories to PagerDuty severities
         - custom_fields: Additional custom fields to include in incidents
         - enable_auto_resolve: Whether to auto-resolve incidents for certain events
         """
@@ -43,26 +47,29 @@ class PagerDutyAction(Action):
         self.datahub_token = config.get("datahub_token")
         self.pagerduty_api_url = "https://events.pagerduty.com/v2/enqueue"
         
-        # Severity mapping for different event types
+        # Severity mapping for different event categories
         self.severity_mapping = config.get("severity_mapping", {
-            "schema_change": "warning",
-            "ownership_change": "info", 
-            "deprecation": "warning",
-            "data_quality_failure": "error",
-            "ingestion_failure": "critical",
-            "tag_change": "info"
+            "TECHNICAL_SCHEMA": "warning",    # Schema changes
+            "OWNERSHIP": "info",              # Ownership changes
+            "DEPRECATION": "warning",         # Asset deprecations
+            "TAG": "info",                    # Tag changes
+            "DOMAIN": "info",                 # Domain changes
+            "GLOSSARY_TERM": "info",          # Glossary term changes
+            "LIFECYCLE": "warning"            # Lifecycle changes
         })
         
         # Auto-resolve configuration
         self.enable_auto_resolve = config.get("enable_auto_resolve", True)
-        self.auto_resolve_events = config.get("auto_resolve_events", [
-            "ownership_restored",
-            "data_quality_restored",
-            "ingestion_restored"
+        self.auto_resolve_operations = config.get("auto_resolve_operations", [
+            "REMOVE"  # Auto-resolve when tags/terms are removed
         ])
         
         # Custom fields to include in PagerDuty incidents
         self.custom_fields = config.get("custom_fields", {})
+        
+        # Rate limiting and retry configuration
+        self.max_retries = config.get("max_retries", 3)
+        self.retry_delay = config.get("retry_delay", 1)
         
         # Validate required configuration
         if not self.routing_key:
@@ -84,33 +91,43 @@ class PagerDutyAction(Action):
             
             logger.info(f"Processing event: {event_type}")
             
+            # Only process EntityChangeEvent_v1 events (DataHub Cloud supported)
+            if event_type != "EntityChangeEvent_v1":
+                logger.debug(f"Skipping unsupported event type: {event_type}")
+                return
+            
             # Determine if this is a trigger or resolve event
-            action_type = self._determine_action_type(event_type, event_data)
+            action_type = self._determine_action_type(event_data)
             
             if action_type == "trigger":
-                self._send_trigger_event(event_type, event_data)
+                self._send_trigger_event(event_data)
             elif action_type == "resolve":
-                self._send_resolve_event(event_type, event_data)
+                self._send_resolve_event(event_data)
             else:
-                logger.debug(f"Ignoring event type: {event_type}")
+                logger.debug(f"Ignoring event category: {event_data.get('category', 'unknown')}")
                 
         except Exception as e:
             logger.error(f"Failed to process event {event.event_type}: {str(e)}")
             raise
     
-    def _determine_action_type(self, event_type: str, event_data: Dict) -> Optional[str]:
+    def _determine_action_type(self, event_data: Dict) -> Optional[str]:
         """
         Determine whether this event should trigger or resolve a PagerDuty incident.
         """
-        # Map DataHub event types to PagerDuty actions
-        trigger_events = [
-            "EntityChangeEvent_v1",  # Schema changes
-            "MetadataChangeLog_v1",  # Ownership, tags, deprecation changes
+        category = event_data.get("category", "")
+        operation = event_data.get("operation", "")
+        
+        # Trigger on critical changes
+        trigger_categories = [
+            "TECHNICAL_SCHEMA",  # Schema changes
+            "DEPRECATION",       # Asset deprecations
+            "OWNERSHIP",         # Ownership changes
+            "TAG",               # Tag changes (especially PII)
+            "DOMAIN",            # Domain changes
+            "LIFECYCLE"          # Lifecycle changes
         ]
         
-        # Check if this event type should trigger an incident
-        if event_type in trigger_events:
-            # Further filter based on event content
+        if category in trigger_categories:
             if self._should_trigger_incident(event_data):
                 return "trigger"
             elif self._should_resolve_incident(event_data):
@@ -122,32 +139,29 @@ class PagerDutyAction(Action):
         """
         Determine if the event data indicates a critical issue that should trigger an incident.
         """
-        # Example logic - customize based on your needs
-        change_type = event_data.get("changeType", "")
-        aspect_name = event_data.get("aspectName", "")
+        category = event_data.get("category", "")
+        operation = event_data.get("operation", "")
         
-        # Trigger on critical changes
-        critical_changes = [
-            "schemaMetadata",  # Schema changes
-            "deprecation",     # Asset deprecations
-            "datasetProperties", # Dataset property changes
-            "ownership"        # Ownership changes
-        ]
+        # Always trigger on schema changes
+        if category == "TECHNICAL_SCHEMA" and operation == "MODIFY":
+            return True
         
-        # Check for data quality failures or ingestion issues
-        if "assertion" in aspect_name.lower() and change_type == "UPSERT":
-            assertion_result = event_data.get("aspect", {}).get("result", {})
-            if assertion_result.get("type") == "FAILURE":
+        # Trigger on deprecation
+        if category == "DEPRECATION" and operation == "ADD":
+            return True
+        
+        # Trigger on ownership changes
+        if category == "OWNERSHIP" and operation in ["ADD", "MODIFY"]:
+            return True
+        
+        # Trigger on critical tag changes (like PII)
+        if category == "TAG" and operation == "ADD":
+            modifier = event_data.get("modifier", "")
+            if "pii" in modifier.lower() or "sensitive" in modifier.lower():
                 return True
         
-        # Check for deprecation events
-        if aspect_name == "deprecation" and change_type == "UPSERT":
-            deprecation = event_data.get("aspect", {})
-            if deprecation.get("deprecated", False):
-                return True
-        
-        # Check for schema changes
-        if aspect_name == "schemaMetadata" and change_type == "UPSERT":
+        # Trigger on domain changes
+        if category == "DOMAIN" and operation in ["ADD", "MODIFY"]:
             return True
         
         return False
@@ -159,36 +173,36 @@ class PagerDutyAction(Action):
         if not self.enable_auto_resolve:
             return False
             
-        change_type = event_data.get("changeType", "")
-        aspect_name = event_data.get("aspectName", "")
-        
-        # Auto-resolve on successful assertions
-        if "assertion" in aspect_name.lower() and change_type == "UPSERT":
-            assertion_result = event_data.get("aspect", {}).get("result", {})
-            if assertion_result.get("type") == "SUCCESS":
-                return True
+        category = event_data.get("category", "")
+        operation = event_data.get("operation", "")
         
         # Auto-resolve when deprecation is removed
-        if aspect_name == "deprecation" and change_type == "DELETE":
+        if category == "DEPRECATION" and operation == "REMOVE":
             return True
+        
+        # Auto-resolve when critical tags are removed
+        if category == "TAG" and operation == "REMOVE":
+            modifier = event_data.get("modifier", "")
+            if "pii" in modifier.lower() or "sensitive" in modifier.lower():
+                return True
         
         return False
     
-    def _send_trigger_event(self, event_type: str, event_data: Dict) -> None:
+    def _send_trigger_event(self, event_data: Dict) -> None:
         """
         Send a trigger event to PagerDuty to create an incident.
         """
         # Generate deduplication key
         entity_urn = event_data.get("entityUrn", "unknown")
-        aspect_name = event_data.get("aspectName", "unknown")
-        dedup_key = f"datahub-{entity_urn}-{aspect_name}"
+        category = event_data.get("category", "unknown")
+        dedup_key = f"datahub-{entity_urn}-{category}"
         
         # Determine severity
-        severity = self._get_severity(event_type, event_data)
+        severity = self._get_severity(event_data)
         
         # Generate summary and description
-        summary = self._generate_summary(event_type, event_data)
-        description = self._generate_description(event_type, event_data)
+        summary = self._generate_summary(event_data)
+        description = self._generate_description(event_data)
         
         # Create entity URL for DataHub Cloud
         if entity_urn != "unknown":
@@ -209,12 +223,14 @@ class PagerDutyAction(Action):
                 "source": "DataHub Metadata Platform",
                 "severity": severity,
                 "component": self._extract_component(entity_urn),
-                "class": event_type,
+                "class": category,
                 "custom_details": {
                     "entity_urn": entity_urn,
-                    "aspect_name": aspect_name,
-                    "change_type": event_data.get("changeType", ""),
-                    "timestamp": event_data.get("systemMetadata", {}).get("lastObserved", ""),
+                    "category": category,
+                    "operation": event_data.get("operation", ""),
+                    "modifier": event_data.get("modifier", ""),
+                    "timestamp": event_data.get("auditStamp", {}).get("time", ""),
+                    "actor": event_data.get("auditStamp", {}).get("actor", ""),
                     "entity_url": entity_url,
                     "description": description,
                     **self.custom_fields
@@ -224,14 +240,14 @@ class PagerDutyAction(Action):
         
         self._send_to_pagerduty(payload)
     
-    def _send_resolve_event(self, event_type: str, event_data: Dict) -> None:
+    def _send_resolve_event(self, event_data: Dict) -> None:
         """
         Send a resolve event to PagerDuty to resolve an incident.
         """
         # Generate same deduplication key as trigger event
         entity_urn = event_data.get("entityUrn", "unknown")
-        aspect_name = event_data.get("aspectName", "unknown")
-        dedup_key = f"datahub-{entity_urn}-{aspect_name}"
+        category = event_data.get("category", "unknown")
+        dedup_key = f"datahub-{entity_urn}-{category}"
         
         payload = {
             "routing_key": self.routing_key,
@@ -242,6 +258,7 @@ class PagerDutyAction(Action):
                 "source": "DataHub Metadata Platform",
                 "custom_details": {
                     "entity_urn": entity_urn,
+                    "category": category,
                     "resolution_time": datetime.utcnow().isoformat(),
                     "resolved_by": "DataHub Automated Resolution"
                 }
@@ -252,86 +269,97 @@ class PagerDutyAction(Action):
     
     def _send_to_pagerduty(self, payload: Dict) -> None:
         """
-        Send the payload to PagerDuty Events API.
+        Send the payload to PagerDuty Events API with retry logic.
         """
-        try:
-            headers = {
-                "Content-Type": "application/json"
-            }
-            
-            response = requests.post(
-                self.pagerduty_api_url,
-                data=json.dumps(payload),
-                headers=headers,
-                timeout=30
-            )
-            
-            response.raise_for_status()
-            
-            result = response.json()
-            logger.info(f"Successfully sent event to PagerDuty: {result.get('message', 'Success')}")
-            
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Failed to send event to PagerDuty: {str(e)}")
-            raise
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse PagerDuty response: {str(e)}")
-            raise
+        for attempt in range(self.max_retries):
+            try:
+                headers = {
+                    "Content-Type": "application/json"
+                }
+                
+                response = requests.post(
+                    self.pagerduty_api_url,
+                    data=json.dumps(payload),
+                    headers=headers,
+                    timeout=30
+                )
+                
+                # Handle rate limiting
+                if response.status_code == 429:
+                    retry_after = int(response.headers.get('Retry-After', self.retry_delay))
+                    logger.warning(f"Rate limited by PagerDuty API. Retrying in {retry_after} seconds.")
+                    time.sleep(retry_after)
+                    continue
+                
+                response.raise_for_status()
+                
+                result = response.json()
+                logger.info(f"Successfully sent event to PagerDuty: {result.get('message', 'Success')}")
+                return
+                
+            except requests.exceptions.RequestException as e:
+                logger.error(f"Failed to send event to PagerDuty (attempt {attempt + 1}): {str(e)}")
+                if attempt < self.max_retries - 1:
+                    time.sleep(self.retry_delay * (2 ** attempt))  # Exponential backoff
+                else:
+                    raise
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse PagerDuty response: {str(e)}")
+                raise
     
-    def _get_severity(self, event_type: str, event_data: Dict) -> str:
+    def _get_severity(self, event_data: Dict) -> str:
         """
         Determine the severity level for the incident.
         """
-        aspect_name = event_data.get("aspectName", "")
+        category = event_data.get("category", "")
         
-        # Map aspect names to severities
-        if "assertion" in aspect_name.lower():
-            return "error"
-        elif aspect_name == "deprecation":
-            return "warning"
-        elif aspect_name == "schemaMetadata":
-            return "warning"
-        elif aspect_name == "ownership":
-            return "info"
-        
-        return "warning"  # Default severity
+        # Use configured severity mapping
+        return self.severity_mapping.get(category, "warning")
     
-    def _generate_summary(self, event_type: str, event_data: Dict) -> str:
+    def _generate_summary(self, event_data: Dict) -> str:
         """
         Generate a human-readable summary for the incident.
         """
         entity_urn = event_data.get("entityUrn", "Unknown Entity")
-        aspect_name = event_data.get("aspectName", "")
-        change_type = event_data.get("changeType", "")
+        category = event_data.get("category", "")
+        operation = event_data.get("operation", "")
         
         component = self._extract_component(entity_urn)
         
-        if aspect_name == "schemaMetadata":
+        if category == "TECHNICAL_SCHEMA":
             return f"Schema change detected in {component}"
-        elif aspect_name == "deprecation":
+        elif category == "DEPRECATION":
             return f"Asset deprecated: {component}"
-        elif aspect_name == "ownership":
+        elif category == "OWNERSHIP":
             return f"Ownership change in {component}"
-        elif "assertion" in aspect_name.lower():
-            return f"Data quality assertion failed for {component}"
+        elif category == "TAG":
+            modifier = event_data.get("modifier", "")
+            tag_name = modifier.split(":")[-1] if ":" in modifier else modifier
+            return f"Tag '{tag_name}' {operation.lower()}ed on {component}"
+        elif category == "DOMAIN":
+            return f"Domain change in {component}"
         else:
-            return f"DataHub metadata change in {component}: {aspect_name}"
+            return f"DataHub metadata change in {component}: {category}"
     
-    def _generate_description(self, event_type: str, event_data: Dict) -> str:
+    def _generate_description(self, event_data: Dict) -> str:
         """
         Generate a detailed description for the incident.
         """
         entity_urn = event_data.get("entityUrn", "")
-        aspect_name = event_data.get("aspectName", "")
-        change_type = event_data.get("changeType", "")
-        timestamp = event_data.get("systemMetadata", {}).get("lastObserved", "")
+        category = event_data.get("category", "")
+        operation = event_data.get("operation", "")
+        modifier = event_data.get("modifier", "")
+        timestamp = event_data.get("auditStamp", {}).get("time", "")
+        actor = event_data.get("auditStamp", {}).get("actor", "")
         
-        description = f"DataHub detected a {change_type.lower()} event for {aspect_name} "
+        description = f"DataHub detected a {operation.lower()} event for {category} "
         description += f"on entity: {entity_urn}\n\n"
-        description += f"Event Type: {event_type}\n"
+        description += f"Category: {category}\n"
+        description += f"Operation: {operation}\n"
+        if modifier:
+            description += f"Modifier: {modifier}\n"
         description += f"Timestamp: {timestamp}\n"
-        description += f"Change Type: {change_type}\n"
-        description += f"Aspect: {aspect_name}\n\n"
+        description += f"Actor: {actor}\n\n"
         description += "Please review the entity in DataHub to understand the impact."
         
         return description
@@ -359,5 +387,4 @@ class PagerDutyAction(Action):
         """
         Cleanup when the action is being shut down.
         """
-        logger.info("PagerDuty Action shutting down")# PASTE THE PAGERDUTY ACTION PYTHON CODE HERE
-# This is where you will paste the PagerDuty Action implementation
+        logger.info("PagerDuty Action shutting down")

@@ -2,9 +2,9 @@
 
 🚨 **Automated Incident Management for Your Data Infrastructure** 🚨
 
-This integration bridges DataHub Cloud with PagerDuty to provide real-time alerting and incident management for critical data events. When something goes wrong with your data—schema changes, quality failures, or ownership issues—your team gets immediately notified through PagerDuty's proven alerting system.
+This integration bridges DataHub Cloud with PagerDuty to provide real-time alerting and incident management for critical data events. When something goes wrong with your data—schema changes, ownership issues, or asset deprecations—your team gets immediately notified through PagerDuty's proven alerting system.
 
-## 🎯 Why This Integration Matters
+## �� Why This Integration Matters
 
 ### The Problem
 Modern data teams manage hundreds of datasets across multiple platforms. When critical data issues occur:
@@ -25,19 +25,41 @@ This integration automatically monitors your DataHub Cloud instance and creates 
 The integration monitors these critical data events in DataHub Cloud:
 
 ### 🔴 Critical Events (Error/Critical Severity)
-- **Data Quality Assertion Failures**: When data quality checks fail
-- **Ingestion Pipeline Failures**: When data ingestion jobs break
-- **Missing Data**: When expected datasets don't arrive
-
-### 🟡 Warning Events (Warning Severity)  
 - **Schema Changes**: When table schemas are modified unexpectedly
 - **Asset Deprecations**: When critical datasets are marked as deprecated
-- **Data Freshness Issues**: When data becomes stale beyond thresholds
 
-### 🔵 Info Events (Info Severity)
+### 🟡 Warning Events (Warning Severity)  
 - **Ownership Changes**: When dataset ownership is transferred
 - **Tag Modifications**: When critical tags (like PII) are added/removed
+- **Domain Changes**: When datasets are moved between domains
+
+### 🔵 Info Events (Info Severity)
 - **Documentation Updates**: When important documentation changes
+- **Glossary Term Changes**: When business terms are applied/removed
+
+## ⚠️ **Important Limitations**
+
+### DataHub Cloud Features NOT Supported by This Integration
+The following DataHub Cloud features are **NOT** accessible via the REST API and therefore cannot be monitored by this integration:
+
+- **Data Quality Assertions** (Freshness, Volume, Column, Schema, Custom SQL)
+- **Ingestion Pipeline Failures** 
+- **Missing Data Alerts**
+- **Data Freshness Issues**
+
+These features are part of DataHub Cloud's **Observe module** and require separate integration methods. For monitoring these features, consider:
+- Using DataHub Cloud's built-in notification system
+- Integrating with DataHub Cloud's webhook capabilities (if available)
+- Using DataHub Cloud's native alerting features
+
+### Supported Event Types
+This integration only supports **EntityChangeEvent_v1** events, which include:
+- Tag additions/removals
+- Ownership changes
+- Domain assignments
+- Deprecation status changes
+- Documentation updates
+- Glossary term assignments
 
 ## 🏗️ Architecture Overview
 
@@ -51,8 +73,8 @@ The integration monitors these critical data events in DataHub Cloud:
          │                       │                       │
     Metadata Events         Event Processing        Incident Management
     • Schema changes        • Event filtering        • Alert routing
-    • Quality failures      • Severity mapping       • Escalation
-    • Ownership changes     • Deduplication         • Auto-resolution
+    • Ownership changes     • Severity mapping       • Escalation
+    • Tag modifications     • Deduplication         • Auto-resolution
 ```
 
 ### How It Works
@@ -106,8 +128,8 @@ pip install -r requirements.txt
 2. Navigate to **Services** → **Service Directory**
 3. Click **+ New Service**
 4. **Service Details**:
-   - Name: "DataHub Data Quality Alerts"
-   - Description: "Critical data events from DataHub Cloud"
+   - Name: "DataHub Metadata Alerts"
+   - Description: "Critical metadata events from DataHub Cloud"
 5. **Integration Settings**:
    - Select **"Use our API directly"**
    - Choose **"Events API v2"**
@@ -164,7 +186,7 @@ The integration can be configured to monitor specific types of events. Edit `con
 filter:
   event_type: "EntityChangeEvent_v1"
   event:
-    aspectName: ["schemaMetadata", "assertions", "deprecation"]
+    category: ["TAG", "OWNERSHIP", "DEPRECATION"]
 ```
 
 ### Severity Mapping
@@ -175,10 +197,9 @@ action:
   config:
     severity_mapping:
       schema_change: "warning"        # Schema changes are warnings
-      data_quality_failure: "error"  # Quality failures are errors  
-      ingestion_failure: "critical"  # Pipeline failures are critical
-      ownership_change: "info"       # Ownership changes are info
-      deprecation: "warning"         # Deprecations are warnings
+      ownership_change: "info"        # Ownership changes are info
+      deprecation: "warning"          # Deprecations are warnings
+      tag_change: "info"              # Tag changes are info
 ```
 
 ### Auto-Resolution
@@ -188,10 +209,7 @@ Configure which events should automatically resolve incidents:
 action:
   config:
     enable_auto_resolve: true
-    auto_resolve_events:
-      - "data_quality_restored"  # Quality checks passing again
-      - "ingestion_restored"     # Pipeline working again
-      - "ownership_restored"     # Ownership issues fixed
+    auto_resolve_operations: ["REMOVE"]
 ```
 
 ### Custom Fields
@@ -316,13 +334,6 @@ Key methods:
 - `_send_trigger_event()`: Creates PagerDuty incidents
 - `_send_resolve_event()`: Resolves incidents automatically
 
-#### `src/datahub_pagerduty_integration/runner.py`
-The runtime orchestrator that:
-- **Loads environment variables** from `.env` file
-- **Validates configuration** and required tokens
-- **Launches the DataHub Actions CLI** with proper parameters
-- **Handles graceful shutdown** and error recovery
-
 #### `config/pagerduty_action.yaml`
 DataHub Actions configuration that:
 - **Defines event sources** (DataHub Cloud REST API)
@@ -340,7 +351,7 @@ def act(self, event: EventEnvelope) -> None:
     # 1. Extract event metadata
     event_type = event.event_type
     entity_urn = event.event.get("entityUrn")
-    aspect_name = event.event.get("aspectName")
+    category = event.event.get("category")
     
     # 2. Determine criticality
     if self._should_trigger_incident(event.event):
@@ -352,7 +363,7 @@ def act(self, event: EventEnvelope) -> None:
             "component": self._extract_component(entity_urn),
             "custom_details": {
                 "entity_url": f"https://fieldeng.acryl.io/dataset/{entity_urn}",
-                "aspect_name": aspect_name,
+                "category": category,
                 "timestamp": datetime.utcnow().isoformat()
             }
         }
@@ -367,11 +378,11 @@ The integration uses intelligent deduplication to prevent alert spam:
 
 ```python
 # Generate consistent deduplication key
-dedup_key = f"datahub-{entity_urn}-{aspect_name}"
+dedup_key = f"datahub-{entity_urn}-{category}"
 ```
 
 This ensures:
-- **Multiple events** for the same entity/aspect are grouped
+- **Multiple events** for the same entity/category are grouped
 - **Incident updates** rather than new incidents for ongoing issues
 - **Clean resolution** when the underlying issue is fixed
 
@@ -594,6 +605,7 @@ mypy src/
 
 ### Documentation
 - [DataHub Actions Framework](https://datahubproject.io/docs/actions)
+- [DataHub Cloud Events API](https://datahubproject.io/docs/managed-datahub/datahub-api/entity-events-api)
 - [PagerDuty Events API v2](https://developer.pagerduty.com/docs/events-api-v2)
 - [DataHub Cloud Documentation](https://docs.acryl.io)
 
