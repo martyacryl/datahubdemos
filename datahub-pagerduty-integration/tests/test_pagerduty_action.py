@@ -87,7 +87,36 @@ class TestPagerDutyAction:
         assert self.action._get_severity({"category": "TECHNICAL_SCHEMA"}) == "warning"
         assert self.action._get_severity({"category": "OWNER"}) == "info"
         assert self.action._get_severity({"category": "DEPRECATION"}) == "warning"
+        assert self.action._get_severity({"category": "RUN"}) == "critical"
         assert self.action._get_severity({"category": "UNKNOWN"}) == "warning"  # default
+    
+    def test_assertion_failure_trigger(self):
+        """Test that assertion failures trigger incidents."""
+        assertion_event = {
+            "category": "RUN",
+            "operation": "COMPLETED",
+            "parameters": {
+                "runResult": "FAILURE",
+                "runId": "test-run-123",
+                "asserteeUrn": "urn:li:dataset:snowflake,test_db.test_table,PROD"
+            }
+        }
+        
+        assert self.action._should_trigger_incident(assertion_event) == True
+    
+    def test_assertion_success_no_trigger(self):
+        """Test that assertion successes don't trigger incidents."""
+        assertion_event = {
+            "category": "RUN",
+            "operation": "COMPLETED",
+            "parameters": {
+                "runResult": "SUCCESS",
+                "runId": "test-run-123",
+                "asserteeUrn": "urn:li:dataset:snowflake,test_db.test_table,PROD"
+            }
+        }
+        
+        assert self.action._should_trigger_incident(assertion_event) == False
     
     def test_extract_component_from_urn(self):
         """Test component extraction from entity URN."""
