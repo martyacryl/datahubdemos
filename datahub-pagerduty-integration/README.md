@@ -45,7 +45,6 @@ The following DataHub Cloud features are **NOT** accessible via the REST API and
 
 - **Ingestion Pipeline Failures** 
 - **Missing Data Alerts**
-- **Data Freshness Issues**
 
 These features are part of DataHub Cloud's **Observe module** and require separate integration methods. For monitoring these features, consider:
 - Using DataHub Cloud's built-in notification system
@@ -61,8 +60,13 @@ This integration supports **EntityChangeEvent_v1** events, which include:
 - Documentation updates
 - Glossary term assignments
 - **Data Quality Assertion Run Events** (SUCCESS/FAILURE results)
+  - **Freshness Assertions** (data freshness monitoring)
+  - **Volume Assertions** (row count validation)
+  - **Column Assertions** (data quality checks)
+  - **Custom SQL Assertions** (custom validation logic)
+  - **Schema Assertions** (schema validation)
 
-**Note:** Data quality assertions ARE supported via Assertion Run Events, which emit when assertions are executed and include the result (SUCCESS or FAILURE), run ID, and assertee URN.
+**Note:** Data quality assertions ARE supported via Assertion Run Events, which emit when assertions are executed and include the result (SUCCESS or FAILURE), run ID, and assertee URN. This includes freshness assertions that monitor data freshness and update frequency.
 
 ## 🏗️ Architecture Overview
 
