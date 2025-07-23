@@ -25,6 +25,7 @@ This integration automatically monitors your DataHub Cloud instance and creates 
 The integration monitors these critical data events in DataHub Cloud:
 
 ### 🔴 Critical Events (Error/Critical Severity)
+- **Data Quality Assertion Failures**: When data quality tests fail (SUCCESS/FAILURE results)
 - **Schema Changes**: When table schemas are modified unexpectedly
 - **Asset Deprecations**: When critical datasets are marked as deprecated
 
@@ -42,7 +43,6 @@ The integration monitors these critical data events in DataHub Cloud:
 ### DataHub Cloud Features NOT Supported by This Integration
 The following DataHub Cloud features are **NOT** accessible via the REST API and therefore cannot be monitored by this integration:
 
-- **Data Quality Assertions** (Freshness, Volume, Column, Schema, Custom SQL)
 - **Ingestion Pipeline Failures** 
 - **Missing Data Alerts**
 - **Data Freshness Issues**
@@ -53,13 +53,16 @@ These features are part of DataHub Cloud's **Observe module** and require separa
 - Using DataHub Cloud's native alerting features
 
 ### Supported Event Types
-This integration only supports **EntityChangeEvent_v1** events, which include:
+This integration supports **EntityChangeEvent_v1** events, which include:
 - Tag additions/removals
 - Ownership changes
 - Domain assignments
 - Deprecation status changes
 - Documentation updates
 - Glossary term assignments
+- **Data Quality Assertion Run Events** (SUCCESS/FAILURE results)
+
+**Note:** Data quality assertions ARE supported via Assertion Run Events, which emit when assertions are executed and include the result (SUCCESS or FAILURE), run ID, and assertee URN.
 
 ## 🏗️ Architecture Overview
 

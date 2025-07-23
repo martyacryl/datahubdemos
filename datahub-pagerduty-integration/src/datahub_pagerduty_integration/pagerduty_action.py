@@ -59,7 +59,8 @@ class PagerDutyAction(Action):
             "TAG": "info",                    # Tag changes
             "DOMAIN": "info",                 # Domain changes
             "GLOSSARY_TERM": "info",          # Glossary term changes
-            "LIFECYCLE": "warning"            # Lifecycle changes
+            "LIFECYCLE": "warning",           # Lifecycle changes
+            "RUN": "critical"                 # Assertion failures are critical
         })
         
         # Auto-resolve configuration
@@ -125,7 +126,8 @@ class PagerDutyAction(Action):
             "OWNER",             # Ownership changes
             "TAG",               # Tag changes (especially PII)
             "DOMAIN",            # Domain changes
-            "LIFECYCLE"          # Lifecycle changes
+            "LIFECYCLE",         # Lifecycle changes
+            "RUN"                # Assertion failures
         ]
         
         if category in trigger_categories:
@@ -164,6 +166,14 @@ class PagerDutyAction(Action):
         # Trigger on domain changes
         if category == "DOMAIN" and operation in ["ADD", "MODIFY"]:
             return True
+        
+        # Trigger on assertion failures
+        if category == "RUN" and operation == "COMPLETED":
+            # Check if this is an assertion run event with FAILURE result
+            parameters = event_data.get("parameters", {})
+            run_result = parameters.get("runResult")
+            if run_result == "FAILURE":
+                return True
         
         return False
     
@@ -339,6 +349,18 @@ class PagerDutyAction(Action):
             return f"Tag '{tag_name}' {operation.lower()}ed on {component}"
         elif category == "DOMAIN":
             return f"Domain change in {component}"
+        elif category == "RUN":
+            # Handle assertion run events
+            parameters = event_data.get("parameters", {})
+            run_result = parameters.get("runResult", "UNKNOWN")
+            assertee_urn = parameters.get("asserteeUrn", "")
+            run_id = parameters.get("runId", "")
+            
+            if run_result == "FAILURE":
+                assertee_component = self._extract_component(assertee_urn) if assertee_urn else "unknown dataset"
+                return f"Data Quality Assertion FAILED: {assertee_component} (Run ID: {run_id})"
+            else:
+                return f"Assertion run completed: {run_result}"
         else:
             return f"DataHub metadata change in {component}: {category}"
     
@@ -357,8 +379,26 @@ class PagerDutyAction(Action):
         description += f"on entity: {entity_urn}\n\n"
         description += f"Category: {category}\n"
         description += f"Operation: {operation}\n"
-        if modifier:
-            description += f"Modifier: {modifier}\n"
+        
+        # Add specific details for assertion events
+        if category == "RUN":
+            parameters = event_data.get("parameters", {})
+            run_result = parameters.get("runResult", "UNKNOWN")
+            assertee_urn = parameters.get("asserteeUrn", "")
+            run_id = parameters.get("runId", "")
+            
+            description += f"Assertion Result: {run_result}\n"
+            description += f"Run ID: {run_id}\n"
+            description += f"Assertion URN: {entity_urn}\n"
+            description += f"Dataset URN: {assertee_urn}\n"
+            
+            if run_result == "FAILURE":
+                description += "\n🚨 **DATA QUALITY ASSERTION FAILED** 🚨\n"
+                description += "This indicates a data quality issue that requires immediate attention.\n"
+        else:
+            if modifier:
+                description += f"Modifier: {modifier}\n"
+        
         description += f"Timestamp: {timestamp}\n"
         description += f"Actor: {actor}\n\n"
         description += "Please review the entity in DataHub to understand the impact."

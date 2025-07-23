@@ -17,7 +17,7 @@ source:
     # Filter for specific categories of interest
     filter:
       event:
-        category: ["TECHNICAL_SCHEMA", "DEPRECATION", "OWNER", "TAG", "DOMAIN", "LIFECYCLE"]
+        category: ["TECHNICAL_SCHEMA", "DEPRECATION", "OWNER", "TAG", "DOMAIN", "LIFECYCLE", "RUN"]
 
 # Action configuration
 action:
@@ -35,6 +35,7 @@ action:
       TAG: "info"                    # Tag changes are info
       DOMAIN: "info"                 # Domain changes are info
       LIFECYCLE: "warning"           # Lifecycle changes are warnings
+      RUN: "critical"                # Assertion failures are critical
     
     # Auto-resolution configuration
     enable_auto_resolve: true
