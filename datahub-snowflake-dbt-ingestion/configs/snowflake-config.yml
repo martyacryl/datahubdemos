@@ -1,0 +1,184 @@
+# DataHub Snowflake Ingestion Configuration
+# For DataHub Open Source (localhost:8080)
+# Based on official DataHub documentation: https://docs.datahub.com/docs/generated/ingestion/sources/snowflake
+
+source:
+  type: snowflake
+  config:
+    # ================================================
+    # CONNECTION SETTINGS
+    # ================================================
+    # Use environment variables for security
+    username: "${SNOWFLAKE_USERNAME}"
+    password: "${SNOWFLAKE_PASSWORD}"
+    account_id: "${SNOWFLAKE_ACCOUNT}"    # Format: xy12345.us-east-1
+    warehouse: "${SNOWFLAKE_WAREHOUSE}"   # e.g., COMPUTE_WH
+    role: "${SNOWFLAKE_ROLE}"            # Use DATAHUB_ROLE created via setup script
+    
+    # ================================================
+    # FILTERING OPTIONS
+    # ================================================
+    # Control which databases to include/exclude
+    database_pattern:
+      allow:
+        - "ANALYTICS.*"
+        - "RAW_DATA.*"
+        - "MARTS.*"
+      deny:
+        - ".*_TEMP"
+        - ".*_BACKUP"
+        - "SNOWFLAKE.*"        # System databases
+        - "UTIL_DB"            # Utility databases
+    
+    # Control which schemas to include/exclude
+    schema_pattern:
+      allow:
+        - "PUBLIC"
+        - "STAGING"
+        - "MARTS"
+        - "RAW"
+        - "TRANSFORMED"
+      deny:
+        - ".*_TEMP"
+        - ".*_BACKUP"
+        - "INFORMATION_SCHEMA"
+    
+    # Control which tables/views to include/exclude
+    table_pattern:
+      allow:
+        - ".*"
+      deny:
+        - ".*_BACKUP"
+        - "TMP_.*"
+        - "TEMP_.*"
+        - ".*_OLD"
+    
+    # ================================================
+    # METADATA EXTRACTION OPTIONS
+    # ================================================
+    # Core metadata extraction
+    include_tables: true
+    include_views: true
+    include_table_lineage: true          # Requires Snowflake Enterprise+
+    include_usage_statistics: true       # Requires Snowflake Enterprise+
+    include_column_lineage: false        # Very resource intensive, enable carefully
+    
+    # Advanced lineage options
+    ignore_start_time_lineage: true      # Recommended: gets all available lineage
+    use_queries_v2: true                 # Use advanced query parsing (recommended)
+    
+    # Tag and classification extraction
+    extract_tags: true
+    include_technical_schema: true
+    
+    # ================================================
+    # PROFILING OPTIONS
+    # ================================================
+    profiling:
+      enabled: false                     # Start with disabled, enable after testing
+      profile_table_level_only: true    # Focus on table-level stats first
+      max_number_of_fields_to_profile: 20
+      profile_if_updated_since_days: 1   # Only profile recently updated tables
+      
+      # Resource limits for profiling
+      max_workers: 5
+      query_timeout: 300                 # 5 minutes
+      
+      # Column profiling options (when enabled)
+      include_field_null_count: true
+      include_field_min_value: true
+      include_field_max_value: true
+      include_field_mean_value: true
+      include_field_median_value: false  # Expensive operation
+      include_field_stddev_value: false  # Expensive operation
+    
+    # ================================================
+    # USAGE AND LINEAGE SETTINGS
+    # ================================================
+    # Time window for usage statistics
+    start_time: "-7 days"               # Look back 7 days for usage data
+    end_time: "now"
+    
+    # Usage extraction options
+    extract_usage_history: true
+    include_operational_stats: true
+    include_read_operational_stats: true
+    
+    # Email domain for user identification
+    email_domain: "yourcompany.com"     # Maps Snowflake users to email addresses
+    
+    # ================================================
+    # PERFORMANCE AND RELIABILITY
+    # ================================================
+    # Connection settings
+    connect_timeout: 60
+    login_timeout: 60
+    
+    # Retry settings
+    max_retries: 3
+    retry_delay: 5
+    
+    # Batch processing
+    sql_alchemy_max_identifier_length: 255
+    
+    # Skip certain resource-intensive operations if needed
+    include_external_url: true
+    include_table_location_lineage: true
+    
+    # ================================================
+    # ADVANCED OPTIONS
+    # ================================================
+    # Platform instance (useful for multi-environment setups)
+    platform_instance: "prod"           # or "dev", "staging", etc.
+    
+    # Environment classification
+    env: "PROD"                         # Used for tagging and organization
+    
+    # Custom properties and tags
+    # Add custom metadata to all extracted entities
+    # meta_mapping:
+    #   business_owner: "owner"
+    #   data_classification: "classification"
+    
+    # ================================================
+    # SNOWFLAKE SHARES (if applicable)
+    # ================================================
+    # Uncomment and configure if using Snowflake Data Sharing
+    # shares:
+    #   SHARE_NAME:
+    #     database_name: "SHARED_DB"
+    #     platform_instance: "prod"
+    #     consumers:
+    #       - database_name: "CONSUMED_DB"
+    #         platform_instance: "consumer_instance"
+
+# ================================================
+# OUTPUT CONFIGURATION
+# ================================================
+sink:
+  type: datahub-rest
+  config:
+    server: "http://localhost:8080"
+    # Uncomment if DataHub has authentication enabled
+    # token: "${DATAHUB_TOKEN}"
+    
+    # Connection settings
+    timeout_sec: 30
+    retry_max_times: 3
+    
+    # Advanced sink options
+    mode: "UPSERT"                      # Options: UPSERT, OVERWRITE
+    
+# ================================================
+# REPORTING AND MONITORING
+# ================================================
+reporting:
+  - type: console
+    config:
+      # Print detailed progress to console
+      level: INFO
+      
+  # Uncomment to save ingestion report to file
+  # - type: file
+  #   config:
+  #     filename: "snowflake-ingestion-report.json"
