@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  retention-enricher:
+    build: .
+    container_name: retention-enricher
+    environment:
+      # DataHub Configuration
+      - DATAHUB_GMS_URL=${DATAHUB_GMS_URL:-https://test-environment.acryl.io/gms}
+      - DATAHUB_GMS_TOKEN=${DATAHUB_GMS_TOKEN}
+      
+      # Snowflake Configuration
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
+      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
+      - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA:-INFORMATION_SCHEMA}
+    
+    # Run the enricher
+    command: python retention_transformer.py
+    
+    # Restart policy
+    restart: "no"
+    
+    # Network configuration
+    networks:
+      - datahub_network
+
+networks:
+  datahub_network:
+    driver: bridge
+    name: retention_enricher_network

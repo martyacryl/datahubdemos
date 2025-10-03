@@ -1,0 +1,29 @@
+# DataHub Retention Period Enricher Configuration
+
+# DataHub Configuration
+datahub:
+  gms_url: "https://test-environment.acryl.io/gms"
+  token: "${DATAHUB_GMS_TOKEN}"
+
+# Snowflake Configuration
+snowflake:
+  user: "${SNOWFLAKE_USER}"
+  password: "${SNOWFLAKE_PASSWORD}"
+  account: "${SNOWFLAKE_ACCOUNT}"
+  warehouse: "${SNOWFLAKE_WAREHOUSE}"
+  database: "${SNOWFLAKE_DATABASE}"
+  schema: "${SNOWFLAKE_SCHEMA:-INFORMATION_SCHEMA}"
+
+# Enricher Configuration
+enricher:
+  # Batch size for processing assets
+  batch_size: 100
+  
+  # Whether to update existing properties or skip
+  update_existing: true
+  
+  # Log level
+  log_level: "INFO"
+  
+  # Structured property URN (will be created if it doesn't exist)
+  structured_property_urn: "urn:li:structuredProperty:retention_period"

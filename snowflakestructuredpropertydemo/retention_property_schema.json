@@ -1,0 +1,32 @@
+{
+  "name": "retention_period",
+  "displayName": "Retention Period",
+  "description": "Data retention period information for the table",
+  "type": "STRUCT",
+  "fields": [
+    {
+      "name": "retention_time",
+      "displayName": "Retention Time",
+      "description": "The retention time in days as specified in Snowflake",
+      "type": "NUMBER"
+    },
+    {
+      "name": "retention_unit",
+      "displayName": "Retention Unit",
+      "description": "The unit of the retention period (e.g., DAYS, MONTHS, YEARS)",
+      "type": "STRING"
+    },
+    {
+      "name": "is_retention_enabled",
+      "displayName": "Retention Enabled",
+      "description": "Whether retention is enabled for this table",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "last_updated",
+      "displayName": "Last Updated",
+      "description": "When this retention information was last updated",
+      "type": "STRING"
+    }
+  ]
+}
