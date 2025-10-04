@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  duplicate-detector:
+    build: .
+    container_name: datahub-duplicate-detector
+    environment:
+      # DataHub Configuration
+      - DATAHUB_GMS_URL=${DATAHUB_GMS_URL:-https://test-environment.acryl.io/gms}
+      - DATAHUB_GMS_TOKEN=${DATAHUB_GMS_TOKEN}
+      
+      # Detection Configuration
+      - ENTITY_TYPES=${ENTITY_TYPES:-dataset,chart,dashboard}
+      - DETECTION_TYPES=${DETECTION_TYPES:-name,schema,description}
+      - NAME_SIMILARITY_THRESHOLD=${NAME_SIMILARITY_THRESHOLD:-0.8}
+      - SCHEMA_SIMILARITY_THRESHOLD=${SCHEMA_SIMILARITY_THRESHOLD:-0.7}
+      - MIN_ASSETS_FOR_DUPLICATE=${MIN_ASSETS_FOR_DUPLICATE:-2}
+      - CASE_SENSITIVE=${CASE_SENSITIVE:-false}
+    
+    # Mount output directory
+    volumes:
+      - ./reports:/app/reports
+    
+    # Run the detector
+    command: python run_detector.py --output-dir /app/reports
+    
+    # Restart policy
+    restart: "no"
+    
+    # Network configuration
+    networks:
+      - datahub_network
+
+networks:
+  datahub_network:
+    driver: bridge
+    name: duplicate_detector_network
