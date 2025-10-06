@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  assertion-ingestion:
+    build: .
+    container_name: datahub-assertion-ingestion
+    environment:
+      # DataHub Cloud Configuration
+      - DATAHUB_GMS_URL=${DATAHUB_GMS_URL}
+      - DATAHUB_GMS_TOKEN=${DATAHUB_GMS_TOKEN}
+      
+      # AWS Glue Configuration
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - GLUE_DATABASE_NAME=${GLUE_DATABASE_NAME}
+      
+      # Snowflake Configuration
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
+      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
+      - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA}
+    
+    # Run the ingestion
+    command: python ingest_all_assertions.py
+    
+    # Restart policy
+    restart: "no"
+    
+    # Mount output directory
+    volumes:
+      - ./reports:/app/reports
