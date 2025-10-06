@@ -43,8 +43,22 @@ DATAHUB_GMS_TOKEN=your_pat_token
 ```
 
 ### 3. Run Demo
+
+**Option A: Quick Demo (Recommended)**
 ```bash
-# Run the complete demo
+# Quick demo - extracts existing DMFs
+./run_quick_demo.sh
+```
+
+**Option B: Complete Workflow**
+```bash
+# Complete workflow with sample DMF creation
+./customer_workflow.sh
+```
+
+**Option C: Manual Steps**
+```bash
+# Run the full demo pipeline
 ./run_demo.sh
 ```
 
