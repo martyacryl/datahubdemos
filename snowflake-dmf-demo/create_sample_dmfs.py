@@ -24,7 +24,7 @@ def create_sample_dmfs():
     user = os.getenv('SNOWFLAKE_USER')
     password = os.getenv('SNOWFLAKE_PASSWORD')
     warehouse = os.getenv('SNOWFLAKE_WAREHOUSE')
-    database = os.getenv('SNOWFLAKE_DATABASE', 'DEMO_DB')
+    database = os.getenv('SNOWFLAKE_DATABASE')
     schema = os.getenv('SNOWFLAKE_SCHEMA', 'DEMO_SCHEMA')
     
     if not all([account, user, password, warehouse]):
@@ -133,10 +133,10 @@ def create_sample_dmfs():
         
         # Test the DMFs
         logger.info("🧪 Testing DMF evaluations...")
-        cursor.execute("""
+        cursor.execute(f"""
             SELECT *
             FROM TABLE(SYSTEM$EVALUATE_DATA_QUALITY_EXPECTATIONS(
-                REF_ENTITY_NAME => 'DEMO_DB.DEMO_SCHEMA.CUSTOMERS'))
+                REF_ENTITY_NAME => '{database}.{schema}.CUSTOMERS'))
         """)
         
         evaluation_results = cursor.fetchall()

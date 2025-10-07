@@ -125,7 +125,11 @@ class SnowflakeAssertionExtractor:
             cursor.execute(query, (database_name, schema_name))
             table_rows = cursor.fetchall()
             
+            logger.info(f"Found {len(table_rows)} table rows in query results")
+            
             for row in table_rows:
+                logger.info(f"Processing table row: {row}")
+                
                 # Get columns for this table
                 columns = self._get_table_columns(cursor, database_name, schema_name, row['TABLE_NAME'])
                 
@@ -133,10 +137,10 @@ class SnowflakeAssertionExtractor:
                 constraints = self._get_table_constraints(cursor, database_name, schema_name, row['TABLE_NAME'])
                 
                 table_info = SnowflakeTableInfo(
-                    database_name=row['database_name'],
-                    schema_name=row['schema_name'],
-                    table_name=row['table_name'],
-                    table_type=row['table_type'],
+                    database_name=row['DATABASE_NAME'],
+                    schema_name=row['SCHEMA_NAME'],
+                    table_name=row['TABLE_NAME'],
+                    table_type=row['TABLE_TYPE'],
                     columns=columns,
                     constraints=constraints
                 )
@@ -160,7 +164,7 @@ class SnowflakeAssertionExtractor:
                 CHARACTER_MAXIMUM_LENGTH as max_length,
                 NUMERIC_PRECISION as numeric_precision,
                 NUMERIC_SCALE as numeric_scale,
-                COLUMN_COMMENT as column_comment
+                COMMENT as column_comment
             FROM INFORMATION_SCHEMA.COLUMNS 
             WHERE TABLE_CATALOG = %s 
             AND TABLE_SCHEMA = %s 
@@ -178,20 +182,15 @@ class SnowflakeAssertionExtractor:
     def _get_table_constraints(self, cursor, database_name: str, schema_name: str, table_name: str) -> List[Dict[str, Any]]:
         """Get constraint information for a table."""
         try:
+            # Simplified query that doesn't rely on CONSTRAINT_COLUMN_USAGE
             query = """
             SELECT 
                 CONSTRAINT_NAME as constraint_name,
-                CONSTRAINT_TYPE as constraint_type,
-                CHECK_CLAUSE as check_clause,
-                COLUMN_NAME as column_name
-            FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
-            LEFT JOIN INFORMATION_SCHEMA.CHECK_CONSTRAINTS cc 
-                ON tc.CONSTRAINT_NAME = cc.CONSTRAINT_NAME
-            LEFT JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu
-                ON tc.CONSTRAINT_NAME = ccu.CONSTRAINT_NAME
-            WHERE tc.TABLE_CATALOG = %s 
-            AND tc.TABLE_SCHEMA = %s 
-            AND tc.TABLE_NAME = %s
+                CONSTRAINT_TYPE as constraint_type
+            FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS 
+            WHERE TABLE_CATALOG = %s 
+            AND TABLE_SCHEMA = %s 
+            AND TABLE_NAME = %s
             """
             
             cursor.execute(query, (database_name, schema_name, table_name))
@@ -230,45 +229,46 @@ class SnowflakeAssertionExtractor:
             # Query to get DMF information from Snowflake's data quality monitoring results
             query = """
             SELECT 
+                MEASUREMENT_TIME,
                 TABLE_NAME,
-                COLUMN_NAME,
-                METRIC_FUNCTION_NAME,
-                EXPECTATION_NAME,
-                EXPECTATION_EXPRESSION,
-                CREATED_ON
-            FROM SNOWFLAKE.LOCAL.DATA_QUALITY_MONITORING_RESULTS_RAW
+                METRIC_NAME,
+                ARGUMENT_NAMES,
+                VALUE
+            FROM SNOWFLAKE.LOCAL.DATA_QUALITY_MONITORING_RESULTS
             WHERE TABLE_NAME = %s
-            AND EXPECTATION_NAME IS NOT NULL
-            ORDER BY CREATED_ON DESC
+            ORDER BY MEASUREMENT_TIME DESC
             """
             
             cursor.execute(query, (table.table_name,))
             dmf_rows = cursor.fetchall()
             
             for row in dmf_rows:
-                column_name = row.get('COLUMN_NAME', 'N/A')
-                metric_function = row.get('METRIC_FUNCTION_NAME', 'Unknown')
-                expectation_name = row.get('EXPECTATION_NAME', 'Unknown')
-                expectation_expression = row.get('EXPECTATION_EXPRESSION', '')
-                created_on = row.get('CREATED_ON')
+                measurement_time = row.get('MEASUREMENT_TIME')
+                table_name = row.get('TABLE_NAME', 'Unknown')
+                metric_name = row.get('METRIC_NAME', 'Unknown')
+                argument_names = row.get('ARGUMENT_NAMES', [])
+                value = row.get('VALUE')
+                
+                # Extract column name from argument_names (usually a list)
+                column_name = argument_names[0] if argument_names and len(argument_names) > 0 else 'N/A'
                 
                 # Create DMF assertion
                 assertion = {
-                    'source_id': f"snowflake-dmf-{table.database_name}-{table.schema_name}-{table.table_name}-{expectation_name}",
+                    'source_id': f"snowflake-dmf-{table.database_name}-{table.schema_name}-{table.table_name}-{metric_name}",
                     'entity_urn': entity_urn,
-                    'assertion_type': 'Data Quality Expectation (DMF)',
-                    'description': f'Snowflake DMF: {metric_function} on column "{column_name}" with expectation "{expectation_name}"',
+                    'assertion_type': 'Data Quality Metric (DMF)',
+                    'description': f'Snowflake DMF: {metric_name} on column "{column_name}" with value {value}',
                     'platform': 'snowflake',
                     'field_path': column_name if column_name != 'N/A' else None,
                     'external_url': f"https://app.snowflake.com/console/account/{self.account}/warehouses",
-                    'logic': f"{metric_function} ON ({column_name}) {expectation_expression}",
+                    'logic': f"{metric_name} ON ({column_name})",
                     'properties': {
                         'dmf_type': 'Data Metric Function',
-                        'metric_function': metric_function,
-                        'expectation_name': expectation_name,
-                        'expectation_expression': expectation_expression,
+                        'metric_name': metric_name,
                         'column_name': column_name,
-                        'created_on': created_on.isoformat() if created_on else None,
+                        'value': value,
+                        'argument_names': argument_names,
+                        'measurement_time': measurement_time.isoformat() if measurement_time else None,
                         'database_name': table.database_name,
                         'schema_name': table.schema_name,
                         'table_name': table.table_name
@@ -276,7 +276,7 @@ class SnowflakeAssertionExtractor:
                 }
                 assertions.append(assertion)
                 
-                logger.info(f"Found DMF: {metric_function} on {column_name} with expectation {expectation_name}")
+                logger.info(f"Found DMF: {metric_name} on {column_name} with value {value}")
             
             if assertions:
                 logger.info(f"Extracted {len(assertions)} DMF assertions for table {table.table_name}")
