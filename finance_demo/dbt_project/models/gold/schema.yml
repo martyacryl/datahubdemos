@@ -1,0 +1,58 @@
+version: 2
+
+models:
+  - name: gold_revenue_summary
+    description: |
+      Aggregated revenue summaries optimized for business reporting and analytics.
+      This gold layer model provides:
+      - Revenue summaries by product
+      - Revenue summaries by region
+      - Revenue summaries by customer segment
+      - Time-based aggregations (year, quarter, month)
+      - Key metrics: total revenue, transaction counts, average transaction amounts
+    config:
+      meta:
+        data_tier: Gold
+        domain: Revenue
+        financial_classification: Financial
+        is_sensitive: True
+        terms_list: 'Revenue,Product Revenue,Financial Metrics'
+    columns:
+      - name: metric_type
+        description: Type of metric aggregation (product_revenue, region_revenue, segment_revenue)
+      - name: product_id
+        description: Product identifier (NULL for non-product metrics)
+      - name: region
+        description: Geographic region (NULL for non-region metrics)
+      - name: customer_segment
+        description: Customer segment (NULL for non-segment metrics)
+      - name: transaction_year
+        description: Year of the transactions
+      - name: transaction_quarter
+        description: Quarter of the transactions
+      - name: transaction_month
+        description: Month of the transactions
+      - name: transaction_count
+        description: Number of distinct transactions
+        meta:
+          financial_classification: Financial
+          term: Financial Metrics
+      - name: customer_count
+        description: Number of distinct customers
+      - name: total_revenue
+        description: Total revenue amount (sum of all transaction amounts)
+        meta:
+          financial_classification: Financial
+          term: Revenue
+      - name: avg_transaction_amount
+        description: Average transaction amount
+        meta:
+          financial_classification: Financial
+          term: Transaction Amount
+      - name: min_transaction_amount
+        description: Minimum transaction amount
+      - name: max_transaction_amount
+        description: Maximum transaction amount
+      - name: created_at
+        description: Timestamp when the record was created
+

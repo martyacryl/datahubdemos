@@ -1,0 +1,29 @@
+# dbt project .gitignore
+
+# dbt artifacts
+target/
+dbt_packages/
+logs/
+profiles.yml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+

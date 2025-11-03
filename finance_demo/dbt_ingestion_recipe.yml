@@ -1,0 +1,119 @@
+# DataHub dbt Ingestion Recipe for Finance Analytics Demo
+# This recipe ingests dbt models and applies automatic tag/term assignments via meta mappings
+
+source:
+  type: dbt
+  config:
+    # Coordinates
+    # Set DBT_PROJECT_ROOT environment variable to point to the dbt_project directory
+    manifest_path: "${DBT_PROJECT_ROOT}/target/manifest.json"
+    catalog_path: "${DBT_PROJECT_ROOT}/target/catalog.json"
+    sources_path: "${DBT_PROJECT_ROOT}/target/sources.json"  # optional for freshness
+    run_results_paths:
+      - "${DBT_PROJECT_ROOT}/target/run_results.json"  # optional for recording dbt test results
+
+    # Target platform
+    target_platform: snowflake
+
+    # Options
+    enable_meta_mapping: true
+    enable_column_meta_mapping: true
+    write_semantics: PATCH  # PATCH mode adds tags/terms without overriding existing ones
+
+    # Meta mappings for automatic tag and term assignment
+    # These mappings will automatically apply tags and terms based on dbt model meta properties
+    meta_mapping:
+      # Map data_tier meta property to glossary terms (Silver, Gold)
+      data_tier:
+        match: "Silver|Gold"
+        operation: "add_term"
+        config:
+          term: "{{ $match }}"
+      
+      # Map has_pii meta property to PII tag
+      has_pii:
+        match: true
+        operation: "add_tag"
+        config:
+          tag: "PII"
+      
+      # Map is_sensitive meta property to Sensitive tag
+      is_sensitive:
+        match: true
+        operation: "add_tag"
+        config:
+          tag: "Sensitive"
+      
+      # Map financial_classification meta property to Financial tag
+      financial_classification:
+        match: "Financial"
+        operation: "add_tag"
+        config:
+          tag: "Financial"
+      
+      # Map domain meta property to Revenue glossary term
+      domain:
+        match: "Revenue"
+        operation: "add_term"
+        config:
+          term: "Revenue"
+      
+      # Map terms_list meta property to multiple glossary terms (comma-separated)
+      terms_list:
+        match: ".*"
+        operation: "add_terms"
+        config:
+          separator: ","
+
+    # Column-level meta mappings
+    # These mappings apply tags and terms at the column level
+    column_meta_mapping:
+      # Map has_pii meta property to PII tag at column level
+      has_pii:
+        match: true
+        operation: "add_tag"
+        config:
+          tag: "PII"
+      
+      # Map is_sensitive meta property to Sensitive tag at column level
+      is_sensitive:
+        match: true
+        operation: "add_tag"
+        config:
+          tag: "Sensitive"
+      
+      # Map financial_classification meta property to Financial tag at column level
+      financial_classification:
+        match: "Financial"
+        operation: "add_tag"
+        config:
+          tag: "Financial"
+      
+      # Map term meta property to glossary term at column level
+      term:
+        match: ".*"
+        operation: "add_term"
+        config:
+          term: "{{ $match }}"
+      
+      # Map terms_list meta property to multiple glossary terms at column level
+      terms_list:
+        match: ".*"
+        operation: "add_terms"
+        config:
+          separator: ","
+
+    # Additional options
+    include_column_lineage: true
+    include_compiled_code: true
+    include_database_name: true
+    convert_column_urns_to_lowercase: true  # Recommended for Snowflake
+    drop_duplicate_sources: true
+
+# Sink configuration for DataHub Cloud
+sink:
+  type: datahub-rest
+  config:
+    server: "https://zscaler.acryl.io/gms"
+    token: "${DATAHUB_PAT}"  # Set this environment variable with your DataHub Cloud PAT
+

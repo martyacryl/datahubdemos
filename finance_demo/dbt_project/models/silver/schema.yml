@@ -1,0 +1,54 @@
+version: 2
+
+models:
+  - name: silver_revenue
+    description: |
+      Cleaned and enriched revenue transaction data with customer information.
+      This silver layer model:
+      - Validates and filters raw transaction data
+      - Enriches transactions with customer master data
+      - Adds calculated date fields for time-based analysis
+      - Removes PII while maintaining business-relevant attributes
+    config:
+      meta:
+        data_tier: Silver
+        domain: Revenue
+        financial_classification: Financial
+        is_sensitive: True
+    columns:
+      - name: transaction_id
+        description: Unique identifier for each transaction
+        meta:
+          financial_classification: Financial
+      - name: customer_id
+        description: Identifier for the customer making the transaction
+      - name: customer_name
+        description: Name of the customer (non-PII, business name)
+      - name: customer_segment
+        description: Customer segmentation category
+        meta:
+          financial_classification: Financial
+      - name: customer_country
+        description: Country where the customer is located
+      - name: product_id
+        description: Identifier for the product being sold
+      - name: amount
+        description: Transaction amount in the specified currency
+        meta:
+          financial_classification: Financial
+          term: Transaction Amount
+      - name: transaction_date
+        description: Date when the transaction occurred
+      - name: region
+        description: Geographic region where the transaction occurred
+      - name: currency
+        description: Currency code for the transaction amount
+      - name: transaction_year
+        description: Year extracted from transaction date
+      - name: transaction_quarter
+        description: Quarter extracted from transaction date
+      - name: transaction_month
+        description: Month extracted from transaction date
+      - name: created_at
+        description: Timestamp when the record was created
+

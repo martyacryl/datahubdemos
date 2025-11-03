@@ -1,0 +1,64 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: Raw data sources in the BRONZE schema
+    database: FINANCE_ANALYTICS
+    schema: BRONZE
+    tables:
+      - name: revenue_transactions
+        description: Raw revenue transaction data containing individual transactions
+        columns:
+          - name: transaction_id
+            description: Unique identifier for each transaction
+            tests:
+              - unique
+              - not_null
+          - name: customer_id
+            description: Identifier for the customer making the transaction
+            tests:
+              - not_null
+          - name: product_id
+            description: Identifier for the product being sold
+            tests:
+              - not_null
+          - name: amount
+            description: Transaction amount in the specified currency
+            tests:
+              - not_null
+          - name: transaction_date
+            description: Date when the transaction occurred
+            tests:
+              - not_null
+          - name: region
+            description: Geographic region where the transaction occurred
+          - name: currency
+            description: Currency code for the transaction amount
+          - name: created_at
+            description: Timestamp when the record was created
+
+      - name: customer_info
+        description: Customer master data containing personally identifiable information (PII)
+        columns:
+          - name: customer_id
+            description: Unique identifier for each customer
+            tests:
+              - unique
+              - not_null
+          - name: customer_name
+            description: Full name of the customer
+            tests:
+              - not_null
+          - name: email
+            description: Customer email address (PII)
+          - name: phone
+            description: Customer phone number (PII)
+          - name: address
+            description: Customer physical address (PII)
+          - name: country
+            description: Country where the customer is located
+          - name: customer_segment
+            description: Customer segmentation category (Enterprise, Mid-Market, SMB)
+          - name: created_at
+            description: Timestamp when the record was created
+

@@ -1,0 +1,58 @@
+# DataHub Snowflake Ingestion Recipe for Finance Analytics Demo
+# This recipe ingests Snowflake database schemas, tables, and lineage
+
+source:
+  type: snowflake
+  config:
+    # This option is recommended to ingest all lineage
+    ignore_start_time_lineage: true
+
+    # This flag tells the snowflake ingestion to use the advanced query parsing
+    use_queries_v2: true
+
+    # Coordinates
+    account_id: "${SNOWFLAKE_ACCOUNT}"  # Set this environment variable
+    warehouse: "${SNOWFLAKE_WAREHOUSE}"  # Set this environment variable
+
+    # Credentials
+    username: "${SNOWFLAKE_USER}"  # Set this environment variable
+    password: "${SNOWFLAKE_PASSWORD}"  # Set this environment variable
+    role: "${SNOWFLAKE_ROLE}"  # Set this environment variable (optional)
+
+    # Filter to only ingest the FINANCE_ANALYTICS database
+    database_pattern:
+      allow:
+        - "^FINANCE_ANALYTICS$"
+
+    # Schema pattern (optional - can filter specific schemas)
+    # schema_pattern:
+    #   allow:
+    #     - "^BRONZE$"
+    #     - "^SILVER$"
+    #     - "^GOLD$"
+
+    # Table pattern (optional - can filter specific tables)
+    # table_pattern:
+    #   allow:
+    #     - ".*"
+
+    # Profiling configuration
+    profiling:
+      enabled: true
+      # This option is recommended to reduce profiling time and costs
+      turn_off_expensive_profiling_metrics: true
+
+    # Profile pattern (optional - can filter which tables to profile)
+    profile_pattern:
+      allow:
+        - "FINANCE_ANALYTICS.BRONZE.*"
+        - "FINANCE_ANALYTICS.SILVER.*"
+        - "FINANCE_ANALYTICS.GOLD.*"
+
+# Sink configuration for DataHub Cloud
+sink:
+  type: datahub-rest
+  config:
+    server: "https://zscaler.acryl.io/gms"
+    token: "${DATAHUB_PAT}"  # Set this environment variable with your DataHub Cloud PAT
+

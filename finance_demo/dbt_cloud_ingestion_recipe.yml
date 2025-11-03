@@ -1,0 +1,129 @@
+# DataHub dbt Cloud Ingestion Recipe for Finance Analytics Demo
+# This recipe connects directly to dbt Cloud API - no need to download artifacts!
+
+source:
+  type: dbt-cloud
+  config:
+    # dbt Cloud API Configuration
+    # Get these from dbt Cloud Settings
+    account_id: YOUR_DBT_CLOUD_ACCOUNT_ID  # Replace with your dbt Cloud account ID
+    project_id: YOUR_DBT_CLOUD_PROJECT_ID  # Replace with your dbt Cloud project ID
+    job_id: YOUR_DBT_CLOUD_JOB_ID  # Replace with your dbt Cloud job ID (see note below)
+    
+    # dbt Cloud API Token
+    token: "${DBT_CLOUD_TOKEN}"  # Set this environment variable with your dbt Cloud API token
+    
+    # Optional: Specify a specific run_id (defaults to latest run)
+    # run_id: 12345  # Uncomment and set if you want a specific run
+    
+    # Target platform (Snowflake in this case)
+    target_platform: snowflake
+    
+    # dbt Cloud Access URL (defaults to https://cloud.getdbt.com)
+    # access_url: "https://cloud.getdbt.com"  # Uncomment if using a different region
+    
+    # External URL mode (where "View in dbt" links point to)
+    external_url_mode: explore  # Options: "explore" or "ide"
+
+    # Options
+    enable_meta_mapping: true
+    enable_column_meta_mapping: true
+    write_semantics: PATCH  # PATCH mode adds tags/terms without overriding existing ones
+
+    # Meta mappings for automatic tag and term assignment
+    # These mappings will automatically apply tags and terms based on dbt model meta properties
+    meta_mapping:
+      # Map data_tier meta property to glossary terms (Silver, Gold)
+      data_tier:
+        match: "Silver|Gold"
+        operation: "add_term"
+        config:
+          term: "{{ $match }}"
+      
+      # Map has_pii meta property to PII tag
+      has_pii:
+        match: true
+        operation: "add_tag"
+        config:
+          tag: "PII"
+      
+      # Map is_sensitive meta property to Sensitive tag
+      is_sensitive:
+        match: true
+        operation: "add_tag"
+        config:
+          tag: "Sensitive"
+      
+      # Map financial_classification meta property to Financial tag
+      financial_classification:
+        match: "Financial"
+        operation: "add_tag"
+        config:
+          tag: "Financial"
+      
+      # Map domain meta property to Revenue glossary term
+      domain:
+        match: "Revenue"
+        operation: "add_term"
+        config:
+          term: "Revenue"
+      
+      # Map terms_list meta property to multiple glossary terms (comma-separated)
+      terms_list:
+        match: ".*"
+        operation: "add_terms"
+        config:
+          separator: ","
+
+    # Column-level meta mappings
+    # These mappings apply tags and terms at the column level
+    column_meta_mapping:
+      # Map has_pii meta property to PII tag at column level
+      has_pii:
+        match: true
+        operation: "add_tag"
+        config:
+          tag: "PII"
+      
+      # Map is_sensitive meta property to Sensitive tag at column level
+      is_sensitive:
+        match: true
+        operation: "add_tag"
+        config:
+          tag: "Sensitive"
+      
+      # Map financial_classification meta property to Financial tag at column level
+      financial_classification:
+        match: "Financial"
+        operation: "add_tag"
+        config:
+          tag: "Financial"
+      
+      # Map term meta property to glossary term at column level
+      term:
+        match: ".*"
+        operation: "add_term"
+        config:
+          term: "{{ $match }}"
+      
+      # Map terms_list meta property to multiple glossary terms at column level
+      terms_list:
+        match: ".*"
+        operation: "add_terms"
+        config:
+          separator: ","
+
+    # Additional options
+    include_column_lineage: true
+    include_compiled_code: true
+    include_database_name: true
+    convert_column_urns_to_lowercase: true  # Recommended for Snowflake
+    drop_duplicate_sources: true
+
+# Sink configuration for DataHub Cloud
+sink:
+  type: datahub-rest
+  config:
+    server: "https://zscaler.acryl.io/gms"
+    token: "${DATAHUB_PAT}"  # Set this environment variable with your DataHub Cloud PAT
+
