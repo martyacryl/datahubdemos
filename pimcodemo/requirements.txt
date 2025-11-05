@@ -1,0 +1,11 @@
+# PIMCO Municipal Bond Demo - Python Dependencies
+
+# DataHub SDK v2
+acryl-datahub[datahub-rest]==0.14.0
+
+# YAML parsing
+PyYAML>=6.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+

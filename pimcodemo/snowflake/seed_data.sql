@@ -1,0 +1,123 @@
+-- PIMCO Municipal Bond Demo - Seed Data
+-- Simulated municipal bond data with realistic values
+
+-- Insert Region Dimension Data
+INSERT INTO SLV_009.DIM_REG_003 (REGION_CD, REGION_NAME, STATE_CODE, REGION_TYPE) VALUES
+('WEST', 'Western Region', NULL, 'GEOGRAPHIC'),
+('NORTHEAST', 'Northeast Region', NULL, 'GEOGRAPHIC'),
+('SOUTH', 'Southern Region', NULL, 'GEOGRAPHIC'),
+('MIDWEST', 'Midwest Region', NULL, 'GEOGRAPHIC'),
+('OTHER', 'Other Region', NULL, 'GEOGRAPHIC');
+
+-- Insert Segment Dimension Data
+INSERT INTO SLV_009.DIM_SEG_4421 (SEGMENT_CD, SEGMENT_NAME, SEG_TYPE, TAX_EXEMPT_FLAG) VALUES
+('TAX_EXEMPT', 'Tax-Exempt Municipal Bonds', 'TAX_EXEMPT', 1),
+('TAXABLE', 'Taxable Municipal Bonds', 'TAXABLE', 0),
+('OTHER', 'Other Bonds', 'OTHER', 0);
+
+-- Insert Issuer Dimension Data (Bronze)
+INSERT INTO BRZ_001.ISS_5510 (ISS_ID, ISS_NAME, ISS_TYPE, STATE_CD, MUN_NAME, RAW_INFO)
+SELECT 'ISS001', 'California State General Obligation', 'MUNICIPAL_TAX_EXEMPT', 'CA', 'State of California', PARSE_JSON('{"type": "state", "full_name": "State of California"}')
+UNION ALL
+SELECT 'ISS002', 'New York City Municipal Water Authority', 'MUNICIPAL_TAX_EXEMPT', 'NY', 'New York City', PARSE_JSON('{"type": "municipal", "full_name": "NYC Water Authority"}')
+UNION ALL
+SELECT 'ISS003', 'Texas Transportation Infrastructure', 'MUNICIPAL_TAX_EXEMPT', 'TX', 'State of Texas', PARSE_JSON('{"type": "state", "full_name": "Texas DOT"}')
+UNION ALL
+SELECT 'ISS004', 'Florida School District Bond', 'MUNICIPAL_TAX_EXEMPT', 'FL', 'Miami-Dade County', PARSE_JSON('{"type": "school", "full_name": "Miami-Dade Schools"}')
+UNION ALL
+SELECT 'ISS005', 'Illinois State Revenue Bond', 'MUNICIPAL_TAXABLE', 'IL', 'State of Illinois', PARSE_JSON('{"type": "state", "full_name": "Illinois Revenue"}')
+UNION ALL
+SELECT 'ISS006', 'Massachusetts General Obligation', 'MUNICIPAL_TAX_EXEMPT', 'MA', 'Commonwealth of Massachusetts', PARSE_JSON('{"type": "state", "full_name": "Massachusetts GO"}')
+UNION ALL
+SELECT 'ISS007', 'Georgia Municipal Utility', 'MUNICIPAL_TAX_EXEMPT', 'GA', 'Atlanta Metro', PARSE_JSON('{"type": "utility", "full_name": "Atlanta Utilities"}')
+UNION ALL
+SELECT 'ISS008', 'North Carolina Transportation', 'MUNICIPAL_TAX_EXEMPT', 'NC', 'State of North Carolina', PARSE_JSON('{"type": "state", "full_name": "NC DOT"}')
+UNION ALL
+SELECT 'ISS009', 'Virginia State Authority', 'MUNICIPAL_TAX_EXEMPT', 'VA', 'Commonwealth of Virginia', PARSE_JSON('{"type": "state", "full_name": "Virginia Authority"}')
+UNION ALL
+SELECT 'ISS010', 'Michigan Infrastructure Bond', 'MUNICIPAL_TAXABLE', 'MI', 'State of Michigan', PARSE_JSON('{"type": "state", "full_name": "Michigan Infrastructure"}');
+
+-- Insert Bond Reference Data (Bronze)
+INSERT INTO BRZ_001.REF_7832 (BND_ID, CUSIP, ISIN, MAT_DATE, CPN_RATE, CR_RT, ISS_TYPE, RAW_DESC)
+SELECT 'BND001', '123456789', 'US1234567890', DATEADD(year, 5, CURRENT_DATE()), 2.500, 'AAA', 'MUNICIPAL_TAX_EXEMPT', PARSE_JSON('{"description": "5-year California GO"}')
+UNION ALL
+SELECT 'BND002', '123456790', 'US1234567908', DATEADD(year, 10, CURRENT_DATE()), 3.000, 'AA+', 'MUNICIPAL_TAX_EXEMPT', PARSE_JSON('{"description": "10-year NYC Water"}')
+UNION ALL
+SELECT 'BND003', '123456791', 'US1234567916', DATEADD(year, 7, CURRENT_DATE()), 2.750, 'AA', 'MUNICIPAL_TAX_EXEMPT', PARSE_JSON('{"description": "7-year Texas Transportation"}')
+UNION ALL
+SELECT 'BND004', '123456792', 'US1234567924', DATEADD(year, 15, CURRENT_DATE()), 3.250, 'AA-', 'MUNICIPAL_TAX_EXEMPT', PARSE_JSON('{"description": "15-year Florida School"}')
+UNION ALL
+SELECT 'BND005', '123456793', 'US1234567932', DATEADD(year, 3, CURRENT_DATE()), 3.500, 'A+', 'MUNICIPAL_TAXABLE', PARSE_JSON('{"description": "3-year Illinois Revenue"}')
+UNION ALL
+SELECT 'BND006', '123456794', 'US1234567940', DATEADD(year, 20, CURRENT_DATE()), 3.750, 'AAA', 'MUNICIPAL_TAX_EXEMPT', PARSE_JSON('{"description": "20-year Massachusetts GO"}')
+UNION ALL
+SELECT 'BND007', '123456795', 'US1234567958', DATEADD(year, 8, CURRENT_DATE()), 2.875, 'AA', 'MUNICIPAL_TAX_EXEMPT', PARSE_JSON('{"description": "8-year Georgia Utility"}')
+UNION ALL
+SELECT 'BND008', '123456796', 'US1234567966', DATEADD(year, 12, CURRENT_DATE()), 3.125, 'AA-', 'MUNICIPAL_TAX_EXEMPT', PARSE_JSON('{"description": "12-year NC Transportation"}')
+UNION ALL
+SELECT 'BND009', '123456797', 'US1234567974', DATEADD(year, 6, CURRENT_DATE()), 2.625, 'AA+', 'MUNICIPAL_TAX_EXEMPT', PARSE_JSON('{"description": "6-year Virginia Authority"}')
+UNION ALL
+SELECT 'BND010', '123456798', 'US1234567982', DATEADD(year, 4, CURRENT_DATE()), 3.625, 'A', 'MUNICIPAL_TAXABLE', PARSE_JSON('{"description": "4-year Michigan Infrastructure"}');
+
+-- Insert Transaction Data (Bronze) - Last 30 days
+INSERT INTO BRZ_001.TX_0421 (TX_ID, TD_DATE, STL_DATE, PRN_AMT, ISS_ID, BND_ID, TRD_TYPE, CUSIP, RAW_DATA)
+SELECT 'TX001', DATEADD(day, -30, CURRENT_DATE()), DATEADD(day, -28, CURRENT_DATE()), 1000000.00, 'ISS001', 'BND001', 'BUY', '123456789', PARSE_JSON('{"trade_id": "T001"}')
+UNION ALL
+SELECT 'TX002', DATEADD(day, -29, CURRENT_DATE()), DATEADD(day, -27, CURRENT_DATE()), 2500000.00, 'ISS002', 'BND002', 'BUY', '123456790', PARSE_JSON('{"trade_id": "T002"}')
+UNION ALL
+SELECT 'TX003', DATEADD(day, -28, CURRENT_DATE()), DATEADD(day, -26, CURRENT_DATE()), 1500000.00, 'ISS003', 'BND003', 'BUY', '123456791', PARSE_JSON('{"trade_id": "T003"}')
+UNION ALL
+SELECT 'TX004', DATEADD(day, -27, CURRENT_DATE()), DATEADD(day, -25, CURRENT_DATE()), 5000000.00, 'ISS004', 'BND004', 'BUY', '123456792', PARSE_JSON('{"trade_id": "T004"}')
+UNION ALL
+SELECT 'TX005', DATEADD(day, -26, CURRENT_DATE()), DATEADD(day, -24, CURRENT_DATE()), 750000.00, 'ISS005', 'BND005', 'BUY', '123456793', PARSE_JSON('{"trade_id": "T005"}')
+UNION ALL
+SELECT 'TX006', DATEADD(day, -25, CURRENT_DATE()), DATEADD(day, -23, CURRENT_DATE()), 3000000.00, 'ISS006', 'BND006', 'BUY', '123456794', PARSE_JSON('{"trade_id": "T006"}')
+UNION ALL
+SELECT 'TX007', DATEADD(day, -24, CURRENT_DATE()), DATEADD(day, -22, CURRENT_DATE()), 2000000.00, 'ISS007', 'BND007', 'BUY', '123456795', PARSE_JSON('{"trade_id": "T007"}')
+UNION ALL
+SELECT 'TX008', DATEADD(day, -23, CURRENT_DATE()), DATEADD(day, -21, CURRENT_DATE()), 1800000.00, 'ISS008', 'BND008', 'BUY', '123456796', PARSE_JSON('{"trade_id": "T008"}')
+UNION ALL
+SELECT 'TX009', DATEADD(day, -22, CURRENT_DATE()), DATEADD(day, -20, CURRENT_DATE()), 1200000.00, 'ISS009', 'BND009', 'BUY', '123456797', PARSE_JSON('{"trade_id": "T009"}')
+UNION ALL
+SELECT 'TX010', DATEADD(day, -21, CURRENT_DATE()), DATEADD(day, -19, CURRENT_DATE()), 900000.00, 'ISS010', 'BND010', 'BUY', '123456798', PARSE_JSON('{"trade_id": "T010"}')
+UNION ALL
+SELECT 'TX011', DATEADD(day, -20, CURRENT_DATE()), DATEADD(day, -18, CURRENT_DATE()), 500000.00, 'ISS001', 'BND001', 'BUY', '123456789', PARSE_JSON('{"trade_id": "T011"}')
+UNION ALL
+SELECT 'TX012', DATEADD(day, -19, CURRENT_DATE()), DATEADD(day, -17, CURRENT_DATE()), 1750000.00, 'ISS002', 'BND002', 'BUY', '123456790', PARSE_JSON('{"trade_id": "T012"}')
+UNION ALL
+SELECT 'TX013', DATEADD(day, -18, CURRENT_DATE()), DATEADD(day, -16, CURRENT_DATE()), 2250000.00, 'ISS003', 'BND003', 'BUY', '123456791', PARSE_JSON('{"trade_id": "T013"}')
+UNION ALL
+SELECT 'TX014', DATEADD(day, -17, CURRENT_DATE()), DATEADD(day, -15, CURRENT_DATE()), 1100000.00, 'ISS004', 'BND004', 'BUY', '123456792', PARSE_JSON('{"trade_id": "T014"}')
+UNION ALL
+SELECT 'TX015', DATEADD(day, -16, CURRENT_DATE()), DATEADD(day, -14, CURRENT_DATE()), 850000.00, 'ISS005', 'BND005', 'BUY', '123456793', PARSE_JSON('{"trade_id": "T015"}')
+UNION ALL
+SELECT 'TX016', DATEADD(day, -15, CURRENT_DATE()), DATEADD(day, -13, CURRENT_DATE()), 4000000.00, 'ISS006', 'BND006', 'BUY', '123456794', PARSE_JSON('{"trade_id": "T016"}')
+UNION ALL
+SELECT 'TX017', DATEADD(day, -14, CURRENT_DATE()), DATEADD(day, -12, CURRENT_DATE()), 1600000.00, 'ISS007', 'BND007', 'BUY', '123456795', PARSE_JSON('{"trade_id": "T017"}')
+UNION ALL
+SELECT 'TX018', DATEADD(day, -13, CURRENT_DATE()), DATEADD(day, -11, CURRENT_DATE()), 1900000.00, 'ISS008', 'BND008', 'BUY', '123456796', PARSE_JSON('{"trade_id": "T018"}')
+UNION ALL
+SELECT 'TX019', DATEADD(day, -12, CURRENT_DATE()), DATEADD(day, -10, CURRENT_DATE()), 1300000.00, 'ISS009', 'BND009', 'BUY', '123456797', PARSE_JSON('{"trade_id": "T019"}')
+UNION ALL
+SELECT 'TX020', DATEADD(day, -11, CURRENT_DATE()), DATEADD(day, -9, CURRENT_DATE()), 950000.00, 'ISS010', 'BND010', 'BUY', '123456798', PARSE_JSON('{"trade_id": "T020"}')
+UNION ALL
+SELECT 'TX021', DATEADD(day, -10, CURRENT_DATE()), DATEADD(day, -8, CURRENT_DATE()), 600000.00, 'ISS001', 'BND001', 'BUY', '123456789', PARSE_JSON('{"trade_id": "T021"}')
+UNION ALL
+SELECT 'TX022', DATEADD(day, -9, CURRENT_DATE()), DATEADD(day, -7, CURRENT_DATE()), 2000000.00, 'ISS002', 'BND002', 'BUY', '123456790', PARSE_JSON('{"trade_id": "T022"}')
+UNION ALL
+SELECT 'TX023', DATEADD(day, -8, CURRENT_DATE()), DATEADD(day, -6, CURRENT_DATE()), 2750000.00, 'ISS003', 'BND003', 'BUY', '123456791', PARSE_JSON('{"trade_id": "T023"}')
+UNION ALL
+SELECT 'TX024', DATEADD(day, -7, CURRENT_DATE()), DATEADD(day, -5, CURRENT_DATE()), 1250000.00, 'ISS004', 'BND004', 'BUY', '123456792', PARSE_JSON('{"trade_id": "T024"}')
+UNION ALL
+SELECT 'TX025', DATEADD(day, -6, CURRENT_DATE()), DATEADD(day, -4, CURRENT_DATE()), 920000.00, 'ISS005', 'BND005', 'BUY', '123456793', PARSE_JSON('{"trade_id": "T025"}')
+UNION ALL
+SELECT 'TX026', DATEADD(day, -5, CURRENT_DATE()), DATEADD(day, -3, CURRENT_DATE()), 3500000.00, 'ISS006', 'BND006', 'BUY', '123456794', PARSE_JSON('{"trade_id": "T026"}')
+UNION ALL
+SELECT 'TX027', DATEADD(day, -4, CURRENT_DATE()), DATEADD(day, -2, CURRENT_DATE()), 1400000.00, 'ISS007', 'BND007', 'BUY', '123456795', PARSE_JSON('{"trade_id": "T027"}')
+UNION ALL
+SELECT 'TX028', DATEADD(day, -3, CURRENT_DATE()), DATEADD(day, -1, CURRENT_DATE()), 2100000.00, 'ISS008', 'BND008', 'BUY', '123456796', PARSE_JSON('{"trade_id": "T028"}')
+UNION ALL
+SELECT 'TX029', DATEADD(day, -2, CURRENT_DATE()), CURRENT_DATE(), 1350000.00, 'ISS009', 'BND009', 'BUY', '123456797', PARSE_JSON('{"trade_id": "T029"}')
+UNION ALL
+SELECT 'TX030', DATEADD(day, -1, CURRENT_DATE()), DATEADD(day, 1, CURRENT_DATE()), 980000.00, 'ISS010', 'BND010', 'BUY', '123456798', PARSE_JSON('{"trade_id": "T030"}');
+

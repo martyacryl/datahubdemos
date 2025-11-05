@@ -1,0 +1,31 @@
+# PIMCO Municipal Bond Demo - Domains
+# Business domains for organizing data assets
+
+domains:
+  - name: "Municipal Bonds"
+    description: "Domain for all municipal bond-related data, including positions, transactions, issuers, and analytics. This domain encompasses fixed income securities issued by state and local governments."
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      business_area: "Fixed Income"
+      data_type: "Securities"
+      
+  - name: "Trading Operations"
+    description: "Domain for trading and transaction data, including bond purchases, sales, and settlement information. Covers the operational aspects of bond trading."
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      business_area: "Trading"
+      data_type: "Transactions"
+      
+  - name: "Reporting & Analytics"
+    description: "Domain for reporting-ready data and analytics, including aggregated positions, growth metrics, and dimensional analysis. Contains gold schema data optimized for business reporting."
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      business_area: "Analytics"
+      data_type: "Reporting"
+
