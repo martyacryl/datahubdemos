@@ -1,0 +1,10 @@
+other_services: 
+  query_manager: True 
+sql_statement_permissions: 
+  - Command: True
+  - Comment: True
+  - Describe: True
+  - Rollback: True
+  - Select: True
+  - Unknown: False # To allow unknown or unmapped statement types, set Unknown: True.
+  - Use: True

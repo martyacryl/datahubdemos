@@ -1,0 +1,62 @@
+# PIMCO Municipal Bond Demo - Fivetran ETL Connector
+# Fivetran connector that extracts from SQL Server and loads into Snowflake
+
+fivetran_connector:
+  name: "sqlserver_to_snowflake_pimco"
+  description: |
+    Fivetran connector that extracts bond transaction, reference, and issuer data 
+    from SQL Server source tables and loads into Snowflake Bronze layer.
+    
+    **Purpose**: ETL connector that synchronizes data from SQL Server source system 
+    to Snowflake data warehouse for analytics and reporting.
+    
+    **Data Flow**:
+    - Source: SQL Server database (dbo.TBL_0421, dbo.TBL_7832, dbo.TBL_5510)
+    - Extraction: Fivetran extracts data from SQL Server tables
+    - Transformation: Fivetran applies basic transformations during extraction
+    - Destination: Snowflake PIMCO_DEMO database (BRZ_001.TX_0421, BRZ_001.REF_7832, BRZ_001.ISS_5510)
+    
+    **Configuration**:
+    - Source: SQL Server database
+    - Destination: Snowflake PIMCO_DEMO database
+    - Sync frequency: Hourly
+    - Sync mode: Incremental (based on transaction dates)
+    
+    **Tables Synced**:
+    - dbo.TBL_0421 → BRZ_001.TX_0421 (transactions)
+    - dbo.TBL_7832 → BRZ_001.REF_7832 (bond reference)
+    - dbo.TBL_5510 → BRZ_001.ISS_5510 (issuer information)
+  business_purpose: |
+    ETL connector that synchronizes bond data from SQL Server source system to 
+    Snowflake data warehouse for analytics and reporting.
+  data_lineage: |
+    SQL Server Tables (TBL_0421, TBL_7832, TBL_5510) → Fivetran → Snowflake Bronze (TX_0421, REF_7832, ISS_5510)
+  usage_notes: |
+    - Runs on hourly schedule
+    - Incremental sync based on transaction dates
+    - Handles schema changes automatically
+    - Provides data quality monitoring
+  tags:
+    - "ETL"
+    - "Data Process"
+    - "Fivetran"
+    - "Integration"
+  domain: "Trading Operations"
+  owner: "datahub"
+  source_platform: "mssql"
+  destination_platform: "snowflake"
+  source_database: "PIMCO_SOURCE"
+  destination_database: "PIMCO_DEMO"
+  sync_frequency: "hourly"
+  sync_mode: "incremental"
+  table_mappings:
+    - source_table: "dbo.TBL_0421"
+      destination_table: "BRZ_001.TX_0421"
+      description: "Syncs transaction data from SQL Server to Snowflake"
+    - source_table: "dbo.TBL_7832"
+      destination_table: "BRZ_001.REF_7832"
+      description: "Syncs bond reference data from SQL Server to Snowflake"
+    - source_table: "dbo.TBL_5510"
+      destination_table: "BRZ_001.ISS_5510"
+      description: "Syncs issuer information from SQL Server to Snowflake"
+

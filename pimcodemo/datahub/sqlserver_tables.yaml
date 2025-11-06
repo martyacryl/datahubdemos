@@ -1,0 +1,220 @@
+# PIMCO Municipal Bond Demo - SQL Server Source Tables
+# Opaque numeric table names (system-database style) that map to Snowflake Bronze layer
+
+tables:
+  # SQL Server Source Tables (opaque naming)
+  - schema: "dbo"
+    table: "TBL_0421"
+    description: |
+      Source transaction data table in SQL Server. Contains raw bond transaction records 
+      from trading systems before transformation. This is the source system table that 
+      feeds into Snowflake Bronze layer via Fivetran ETL.
+      
+      **Purpose**: Source of truth for bond transactions in SQL Server. Data is transformed 
+      by stored procedures and then extracted by Fivetran to load into Snowflake.
+      
+      **Data Flow**: 
+      - Source: Trading systems (external feeds)
+      - Transformation: Stored procedures transform data
+      - Extraction: Fivetran extracts from this table
+      - Destination: Loaded into Snowflake BRZ_001.TX_0421 via Fivetran
+      
+      **Key Characteristics**:
+      - Contains opaque trade type codes (e.g., 'B', 'S', '1', '2')
+      - Includes raw JSON data in RAW_DATA column
+      - Trade dates and settlement dates for trade lifecycle tracking
+      - Principal amounts represent par value of bonds traded
+    business_purpose: |
+      Source system table for bond transactions. Maintains original data formats 
+      and opaque codes from trading systems before ETL transformation.
+    data_lineage: |
+      Trading Systems → TBL_0421 → Stored Procedures → TBL_0421 → Fivetran → BRZ_001.TX_0421
+    usage_notes: |
+      - Source table for transaction data
+      - Used by stored procedures for transformation
+      - Extracted by Fivetran for Snowflake loading
+    tags:
+      - "Bronze Schema"
+      - "Transaction Data"
+      - "Core Data"
+      - "Source System"
+    glossary_terms:
+      - "Bond Transaction"
+    domain: "Trading Operations"
+    owner: "datahub"
+    columns:
+      - name: "TX_ID"
+        description: "Unique transaction identifier from source system"
+        data_type: "VARCHAR(50)"
+        glossary_terms:
+          - "Bond Transaction"
+      - name: "TD_DATE"
+        description: "Trade date - when the bond trade was executed"
+        data_type: "DATE"
+        tags:
+          - "Time Series"
+      - name: "STL_DATE"
+        description: "Settlement date - when the trade settles"
+        data_type: "DATE"
+        tags:
+          - "Time Series"
+      - name: "PRN_AMT"
+        description: "Principal amount - the par value of bonds traded"
+        data_type: "DECIMAL(18, 2)"
+        glossary_terms:
+          - "Par Value"
+        tags:
+          - "Financial Metrics"
+      - name: "ISS_ID"
+        description: "Issuer identifier - links to issuer dimension"
+        data_type: "VARCHAR(50)"
+        glossary_terms:
+          - "Bond Issuer"
+      - name: "BND_ID"
+        description: "Bond identifier - links to bond reference data"
+        data_type: "VARCHAR(50)"
+      - name: "TRD_TYPE"
+        description: "Trade type - opaque code from source system (B, S, 1, 2)"
+        data_type: "VARCHAR(10)"
+        glossary_terms:
+          - "Bond Transaction"
+      - name: "CUSIP"
+        description: "CUSIP identifier for the bond"
+        data_type: "VARCHAR(9)"
+      - name: "RAW_DATA"
+        description: "Raw JSON data from source system"
+        data_type: "VARCHAR(MAX)"
+  
+  - schema: "dbo"
+    table: "TBL_7832"
+    description: |
+      Source bond reference data table in SQL Server. Contains bond characteristics 
+      including maturity date, coupon rate, credit rating, and issuer type.
+      
+      **Purpose**: Source of truth for bond reference data in SQL Server. Data is 
+      transformed by stored procedures and then extracted by Fivetran to load into Snowflake.
+      
+      **Data Flow**:
+      - Source: Bond reference data systems
+      - Transformation: Stored procedures transform data
+      - Extraction: Fivetran extracts from this table
+      - Destination: Loaded into Snowflake BRZ_001.REF_7832 via Fivetran
+      
+      **Key Characteristics**:
+      - Contains opaque issuer type codes (e.g., 'E', 'T', '1', '0', 'N', 'Y')
+      - Includes standard bond identifiers (CUSIP, ISIN)
+      - Credit ratings from rating agencies
+      - Bond characteristics for portfolio analysis
+    business_purpose: |
+      Source system table for bond reference data. Maintains original data formats 
+      and opaque codes from reference data systems before ETL transformation.
+    data_lineage: |
+      Bond Reference Systems → TBL_7832 → Stored Procedures → TBL_7832 → Fivetran → BRZ_001.REF_7832
+    usage_notes: |
+      - Source table for bond reference data
+      - Used by stored procedures for transformation
+      - Extracted by Fivetran for Snowflake loading
+    tags:
+      - "Bronze Schema"
+      - "Dimension Data"
+      - "Core Data"
+      - "Source System"
+    glossary_terms:
+      - "Bond Issuer"
+    domain: "Municipal Bonds"
+    owner: "datahub"
+    columns:
+      - name: "BND_ID"
+        description: "Unique bond identifier from source system"
+        data_type: "VARCHAR(50)"
+      - name: "CUSIP"
+        description: "CUSIP identifier for the bond"
+        data_type: "VARCHAR(9)"
+      - name: "ISIN"
+        description: "ISIN identifier for the bond"
+        data_type: "VARCHAR(20)"
+      - name: "MAT_DATE"
+        description: "Maturity date - when bond principal is repaid"
+        data_type: "DATE"
+        glossary_terms:
+          - "Maturity Date"
+      - name: "CPN_RATE"
+        description: "Coupon rate - annual interest rate as percentage"
+        data_type: "DECIMAL(5, 3)"
+        glossary_terms:
+          - "Coupon Rate"
+        tags:
+          - "Financial Metrics"
+      - name: "CR_RT"
+        description: "Credit rating - bond issuer creditworthiness rating"
+        data_type: "VARCHAR(5)"
+        glossary_terms:
+          - "Credit Rating"
+      - name: "ISS_TYPE"
+        description: "Issuer type - opaque code from source system (E, T, 1, 0, N, Y)"
+        data_type: "VARCHAR(50)"
+      - name: "RAW_DESC"
+        description: "Raw JSON description from source system"
+        data_type: "VARCHAR(MAX)"
+  
+  - schema: "dbo"
+    table: "TBL_5510"
+    description: |
+      Source issuer information table in SQL Server. Contains issuer name, type, 
+      state, and municipality details.
+      
+      **Purpose**: Source of truth for bond issuer information in SQL Server. Data is 
+      transformed by stored procedures and then extracted by Fivetran to load into Snowflake.
+      
+      **Data Flow**:
+      - Source: Issuer reference data systems
+      - Transformation: Stored procedures transform data
+      - Extraction: Fivetran extracts from this table
+      - Destination: Loaded into Snowflake BRZ_001.ISS_5510 via Fivetran
+      
+      **Key Characteristics**:
+      - Contains issuer names and geographic information
+      - Includes opaque issuer type codes
+      - State and municipality information for geographic analysis
+    business_purpose: |
+      Source system table for bond issuer information. Maintains original data formats 
+      and opaque codes from issuer reference systems before ETL transformation.
+    data_lineage: |
+      Issuer Reference Systems → TBL_5510 → Stored Procedures → TBL_5510 → Fivetran → BRZ_001.ISS_5510
+    usage_notes: |
+      - Source table for issuer information
+      - Used by stored procedures for transformation
+      - Extracted by Fivetran for Snowflake loading
+    tags:
+      - "Bronze Schema"
+      - "Dimension Data"
+      - "Core Data"
+      - "Source System"
+    glossary_terms:
+      - "Bond Issuer"
+    domain: "Municipal Bonds"
+    owner: "datahub"
+    columns:
+      - name: "ISS_ID"
+        description: "Unique issuer identifier from source system"
+        data_type: "VARCHAR(50)"
+        glossary_terms:
+          - "Bond Issuer"
+      - name: "ISS_NAME"
+        description: "Issuer name - full name of the bond issuer"
+        data_type: "VARCHAR(200)"
+      - name: "ISS_TYPE"
+        description: "Issuer type - opaque code from source system"
+        data_type: "VARCHAR(50)"
+      - name: "STATE_CD"
+        description: "State code - two-letter state abbreviation"
+        data_type: "VARCHAR(2)"
+        glossary_terms:
+          - "Geographic Region"
+      - name: "MUN_NAME"
+        description: "Municipality name - city or municipality name"
+        data_type: "VARCHAR(100)"
+      - name: "RAW_INFO"
+        description: "Raw JSON information from source system"
+        data_type: "VARCHAR(MAX)"
+

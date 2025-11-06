@@ -1,0 +1,295 @@
+# PIMCO Municipal Bond Demo - Table and Column Mappings
+# Maps glossary terms and tags to Snowflake tables and columns
+
+tables:
+  # Bronze Schema - Raw Transaction Data
+  - schema: "BRZ_001"
+    table: "TX_0421"
+    tags:
+      - "Bronze Schema"
+      - "Transaction Data"
+      - "Core Data"
+    glossary_terms:
+      - "Bond Transaction"
+    domain: "Trading Operations"
+    columns:
+      - name: "PRN_AMT"
+        glossary_terms:
+          - "Par Value"
+        tags:
+          - "Financial Metrics"
+      - name: "TD_DATE"
+        tags:
+          - "Time Series"
+      - name: "STL_DATE"
+        tags:
+          - "Time Series"
+      - name: "TRD_TYPE"
+        glossary_terms:
+          - "Bond Transaction"
+  
+  - schema: "BRZ_001"
+    table: "REF_7832"
+    tags:
+      - "Bronze Schema"
+      - "Dimension Data"
+      - "Core Data"
+    glossary_terms:
+      - "Bond Issuer"
+    domain: "Municipal Bonds"
+    columns:
+      - name: "MAT_DATE"
+        glossary_terms:
+          - "Maturity Date"
+      - name: "CPN_RATE"
+        glossary_terms:
+          - "Coupon Rate"
+        tags:
+          - "Financial Metrics"
+      - name: "CR_RT"
+        glossary_terms:
+          - "Credit Rating"
+  
+  - schema: "BRZ_001"
+    table: "ISS_5510"
+    tags:
+      - "Bronze Schema"
+      - "Dimension Data"
+      - "Core Data"
+    glossary_terms:
+      - "Bond Issuer"
+    domain: "Municipal Bonds"
+    columns:
+      - name: "STATE_CD"
+        glossary_terms:
+          - "Geographic Region"
+  
+  # Silver Schema - Cleaned Data
+  - schema: "SLV_009"
+    table: "TXN_7821"
+    tags:
+      - "Silver Schema"
+      - "Transaction Data"
+      - "Core Data"
+    glossary_terms:
+      - "Bond Transaction"
+    domain: "Trading Operations"
+    columns:
+      - name: "PRINCIPAL_AMOUNT"
+        glossary_terms:
+          - "Par Value"
+        tags:
+          - "Financial Metrics"
+      - name: "TRADE_TYPE"
+        glossary_terms:
+          - "Bond Transaction"
+  
+  - schema: "SLV_009"
+    table: "DIM_BND_001"
+    tags:
+      - "Silver Schema"
+      - "Dimension Data"
+    glossary_terms:
+      - "Bond Issuer"
+    domain: "Municipal Bonds"
+    columns:
+      - name: "MATURITY_DATE"
+        glossary_terms:
+          - "Maturity Date"
+      - name: "COUPON_RATE"
+        glossary_terms:
+          - "Coupon Rate"
+        tags:
+          - "Financial Metrics"
+      - name: "CREDIT_RATING"
+        glossary_terms:
+          - "Credit Rating"
+      - name: "SEGMENT_CD"
+        glossary_terms:
+          - "Bond Segment"
+          - "Tax-Exempt Municipal Bond"
+          - "Taxable Municipal Bond"
+  
+  - schema: "SLV_009"
+    table: "DIM_ISS_002"
+    tags:
+      - "Silver Schema"
+      - "Dimension Data"
+    glossary_terms:
+      - "Bond Issuer"
+    domain: "Municipal Bonds"
+    columns:
+      - name: "REGION_CD"
+        glossary_terms:
+          - "Geographic Region"
+  
+  - schema: "SLV_009"
+    table: "DIM_REG_003"
+    tags:
+      - "Silver Schema"
+      - "Dimension Data"
+    glossary_terms:
+      - "Geographic Region"
+    domain: "Municipal Bonds"
+  
+  - schema: "SLV_009"
+    table: "DIM_SEG_4421"
+    tags:
+      - "Silver Schema"
+      - "Dimension Data"
+    glossary_terms:
+      - "Bond Segment"
+      - "Tax-Exempt Municipal Bond"
+      - "Taxable Municipal Bond"
+    domain: "Municipal Bonds"
+  
+  # Gold Schema - Reporting Data
+  - schema: "GLD_003"
+    table: "POS_9912"
+    tags:
+      - "Gold Schema"
+      - "Reporting"
+      - "Position Data"
+      - "Financial Metrics"
+      - "Core Data"
+    glossary_terms:
+      - "Municipal Bond Position"
+    domain: "Reporting & Analytics"
+    columns:
+      - name: "STATUS_CD"
+        glossary_terms:
+          - "Position Status"
+        tags:
+          - "Core Data"
+      - name: "MATURITY_MULTIPLIER"
+        glossary_terms:
+          - "Maturity Multiplier"
+        tags:
+          - "Financial Metrics"
+      - name: "RISK_FACTOR"
+        glossary_terms:
+          - "Risk Factor"
+        tags:
+          - "Financial Metrics"
+      - name: "PAR_VALUE"
+        glossary_terms:
+          - "Par Value"
+        tags:
+          - "Financial Metrics"
+      - name: "MARKET_VALUE"
+        glossary_terms:
+          - "Adjusted Market Value"
+        tags:
+          - "Financial Metrics"
+      - name: "SEGMENT_CD"
+        glossary_terms:
+          - "Bond Segment"
+          - "Tax-Exempt Municipal Bond"
+          - "Taxable Municipal Bond"
+      - name: "REGION_CD"
+        glossary_terms:
+          - "Geographic Region"
+  
+  - schema: "GLD_003"
+    table: "SEG_4421"
+    tags:
+      - "Gold Schema"
+      - "Reporting"
+      - "Aggregated"
+      - "Financial Metrics"
+    glossary_terms:
+      - "Bond Segment"
+      - "Tax-Exempt Municipal Bond"
+      - "Taxable Municipal Bond"
+    domain: "Reporting & Analytics"
+    columns:
+      - name: "TOTAL_PAR_VALUE"
+        glossary_terms:
+          - "Par Value"
+        tags:
+          - "Financial Metrics"
+      - name: "TOTAL_MARKET_VALUE"
+        glossary_terms:
+          - "Market Value"
+        tags:
+          - "Financial Metrics"
+      - name: "SEGMENT_CD"
+        glossary_terms:
+          - "Bond Segment"
+  
+  - schema: "GLD_003"
+    table: "REG_7733"
+    tags:
+      - "Gold Schema"
+      - "Reporting"
+      - "Aggregated"
+      - "Financial Metrics"
+    glossary_terms:
+      - "Geographic Region"
+    domain: "Reporting & Analytics"
+    columns:
+      - name: "TOTAL_PAR_VALUE"
+        glossary_terms:
+          - "Par Value"
+        tags:
+          - "Financial Metrics"
+      - name: "TOTAL_MARKET_VALUE"
+        glossary_terms:
+          - "Market Value"
+        tags:
+          - "Financial Metrics"
+  
+  - schema: "GLD_003"
+    table: "ISS_8844"
+    tags:
+      - "Gold Schema"
+      - "Reporting"
+      - "Aggregated"
+      - "Financial Metrics"
+    glossary_terms:
+      - "Bond Issuer"
+    domain: "Reporting & Analytics"
+    columns:
+      - name: "TOTAL_PAR_VALUE"
+        glossary_terms:
+          - "Par Value"
+        tags:
+          - "Financial Metrics"
+      - name: "TOTAL_MARKET_VALUE"
+        glossary_terms:
+          - "Market Value"
+        tags:
+          - "Financial Metrics"
+  
+  - schema: "GLD_003"
+    table: "GRO_5566"
+    tags:
+      - "Gold Schema"
+      - "Reporting"
+      - "Time Series"
+      - "Financial Metrics"
+    glossary_terms:
+      - "Position Growth"
+    domain: "Reporting & Analytics"
+    columns:
+      - name: "TOTAL_PAR_VALUE"
+        glossary_terms:
+          - "Par Value"
+        tags:
+          - "Financial Metrics"
+      - name: "TOTAL_MARKET_VALUE"
+        glossary_terms:
+          - "Market Value"
+        tags:
+          - "Financial Metrics"
+      - name: "VALUE_CHANGE"
+        glossary_terms:
+          - "Position Growth"
+        tags:
+          - "Financial Metrics"
+      - name: "PCT_CHANGE"
+        glossary_terms:
+          - "Position Growth"
+        tags:
+          - "Financial Metrics"
+

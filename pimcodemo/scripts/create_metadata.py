@@ -6,12 +6,15 @@ Creates glossary terms, tags, domains, and documentation in DataHub Cloud
 
 import os
 import re
+import time
 import yaml
 from typing import Dict, List, Any
-from datahub.ingestion.graph.client import DataHubGraph
+from datahub.emitter.rest_emitter import DatahubRestEmitter
+from datahub.emitter.mcp import MetadataChangeProposalWrapper
+from datahub.emitter.mce_builder import make_term_urn, make_tag_urn, make_domain_urn
 from datahub.metadata.schema_classes import (
-    MetadataChangeProposalWrapper,
     GlossaryTermInfoClass,
+    GlossaryNodeInfoClass,
     TagPropertiesClass,
     DomainPropertiesClass,
     OwnershipClass,
@@ -21,6 +24,8 @@ from datahub.metadata.schema_classes import (
     DatasetPropertiesClass,
     SchemaFieldClass,
     SchemaMetadataClass,
+    DomainsClass,
+    AuditStampClass,
 )
 
 
@@ -29,11 +34,10 @@ class DataHubMetadataCreator:
     
     def __init__(self, datahub_url: str, datahub_token: str):
         """Initialize DataHub client"""
-        self.graph = DataHubGraph(
-            config={
-                "server": datahub_url,
-                "token": datahub_token,
-            }
+        self.emitter = DatahubRestEmitter(gms_server=datahub_url, token=datahub_token)
+        self.audit_stamp = AuditStampClass(
+            time=int(time.time() * 1000),
+            actor="urn:li:corpuser:datahub",
         )
         
     def _normalize_urn_name(self, name: str) -> str:
@@ -55,28 +59,44 @@ class DataHubMetadataCreator:
         glossary_terms = config.get('glossary_terms', [])
         term_groups = config.get('term_groups', [])
         
+        # Store term configs by name for later use when linking to groups
+        term_configs_by_name = {}
+        
         # Create individual glossary terms
         for term_config in glossary_terms:
             term_name = term_config['name']
-            term_urn = f"urn:li:glossaryTerm:{self._normalize_urn_name(term_name)}"
+            term_configs_by_name[term_name] = term_config
+            term_urn = make_term_urn(self._normalize_urn_name(term_name))
             
             term_info = GlossaryTermInfoClass(
+                name=term_name,
                 definition=term_config.get('description', ''),
-                termSource=term_config.get('term_source', ''),
+                termSource=term_config.get('term_source', 'MANUAL'),
                 sourceRef=term_config.get('term_source_url', ''),
                 customProperties=term_config.get('custom_properties', {}),
             )
             
-            proposal = MetadataChangeProposalWrapper(
-                entityType="glossaryTerm",
+            event = MetadataChangeProposalWrapper(
                 entityUrn=term_urn,
-                changeType=ChangeTypeClass.UPSERT,
-                aspectName="glossaryTermInfo",
                 aspect=term_info,
             )
             
-            self.graph.emit(proposal)
+            self.emitter.emit(event)
             print(f"Created glossary term: {term_name}")
+            
+            # Add domain if specified
+            if 'domain' in term_config:
+                domain_name = term_config['domain']
+                domain_urn = make_domain_urn(self._normalize_urn_name(domain_name))
+                domains = DomainsClass(
+                    domains=[domain_urn]
+                )
+                domain_proposal = MetadataChangeProposalWrapper(
+                    entityUrn=term_urn,
+                    aspect=domains,
+                )
+                self.emitter.emit(domain_proposal)
+                print(f"  Assigned domain: {domain_name}")
             
             # Add ownership if specified
             if 'ownership' in term_config:
@@ -86,45 +106,69 @@ class DataHubMetadataCreator:
                         owners=[
                             OwnerClass(
                                 owner=owner_urn,
-                                type=OwnershipTypeClass.CORP_USER if owner_config['type'] == 'user' else OwnershipTypeClass.CORP_GROUP
+                                type=OwnershipTypeClass.DATAOWNER
                             )
                         ]
                     )
                     ownership_proposal = MetadataChangeProposalWrapper(
-                        entityType="glossaryTerm",
                         entityUrn=term_urn,
-                        changeType=ChangeTypeClass.UPSERT,
-                        aspectName="ownership",
                         aspect=ownership,
                     )
-                    self.graph.emit(ownership_proposal)
+                    self.emitter.emit(ownership_proposal)
             
-        # Create term groups (as parent terms)
+        # Flush all term creation events before creating groups
+        self.emitter.flush()
+        print("Flushed all term creation events")
+        
+        # Create term groups as GlossaryNodes (not GlossaryTerms!)
         for group_config in term_groups:
             group_name = group_config['name']
-            group_urn = f"urn:li:glossaryTerm:{self._normalize_urn_name(group_name)}"
+            # Create GlossaryNode URN manually (format: urn:li:glossaryNode:name)
+            group_urn = f"urn:li:glossaryNode:{self._normalize_urn_name(group_name)}"
             
-            group_info = GlossaryTermInfoClass(
+            group_info = GlossaryNodeInfoClass(
+                name=group_name,
                 definition=group_config.get('description', ''),
-                customProperties={"term_group": "true"},
             )
             
-            proposal = MetadataChangeProposalWrapper(
-                entityType="glossaryTerm",
+            event = MetadataChangeProposalWrapper(
                 entityUrn=group_urn,
-                changeType=ChangeTypeClass.UPSERT,
-                aspectName="glossaryTermInfo",
                 aspect=group_info,
             )
             
-            self.graph.emit(proposal)
-            print(f"Created term group: {group_name}")
+            self.emitter.emit(event)
+            self.emitter.flush()
+            print(f"Created term group (GlossaryNode): {group_name}")
             
-            # Link terms to group (parent relationship)
+            # Link terms to group by setting parentNode on each child term
             for term_name in group_config.get('terms', []):
-                term_urn = f"urn:li:glossaryTerm:{self._normalize_urn_name(term_name)}"
-                # Note: Parent relationships would require additional API calls
-                # This is a placeholder for future enhancement
+                if term_name not in term_configs_by_name:
+                    print(f"  Warning: Term '{term_name}' not found in glossary terms, skipping")
+                    continue
+                    
+                term_config = term_configs_by_name[term_name]
+                term_urn = make_term_urn(self._normalize_urn_name(term_name))
+                
+                # Update term with parentNode pointing to GlossaryNode
+                term_info_with_parent = GlossaryTermInfoClass(
+                    name=term_name,
+                    definition=term_config.get('description', ''),
+                    termSource=term_config.get('term_source', 'MANUAL'),
+                    sourceRef=term_config.get('term_source_url', ''),
+                    customProperties=term_config.get('custom_properties', {}),
+                    parentNode=group_urn,  # This is now a GlossaryNodeUrn
+                )
+                
+                parent_event = MetadataChangeProposalWrapper(
+                    entityUrn=term_urn,
+                    aspect=term_info_with_parent,
+                )
+                
+                self.emitter.emit(parent_event)
+                print(f"  Linked term '{term_name}' to group '{group_name}'")
+            
+            # Flush after each group to ensure proper linking
+            self.emitter.flush()
                 
     def create_tags(self, tags_file: str):
         """Create tags from YAML file"""
@@ -151,7 +195,7 @@ class DataHubMetadataCreator:
                 aspect=tag_properties,
             )
             
-            self.graph.emit(proposal)
+            self.emitter.emit(proposal)
             print(f"Created tag: {tag_name}")
             
     def create_domains(self, domains_file: str):
@@ -179,7 +223,7 @@ class DataHubMetadataCreator:
                 aspect=domain_properties,
             )
             
-            self.graph.emit(proposal)
+            self.emitter.emit(proposal)
             print(f"Created domain: {domain_name}")
             
             # Add ownership if specified
@@ -190,7 +234,7 @@ class DataHubMetadataCreator:
                         owners=[
                             OwnerClass(
                                 owner=owner_urn,
-                                type=OwnershipTypeClass.CORP_USER if owner_config['type'] == 'user' else OwnershipTypeClass.CORP_GROUP
+                                type=OwnershipTypeClass.DATAOWNER
                             )
                         ]
                     )
@@ -201,7 +245,7 @@ class DataHubMetadataCreator:
                         aspectName="ownership",
                         aspect=ownership,
                     )
-                    self.graph.emit(ownership_proposal)
+                    self.emitter.emit(ownership_proposal)
             
     def apply_documentation(self, table_mappings: Dict[str, Dict[str, str]]):
         """Apply documentation to Snowflake tables and columns"""
@@ -369,7 +413,7 @@ class DataHubMetadataCreator:
                     aspect=dataset_properties,
                 )
                 
-                self.graph.emit(proposal)
+                self.emitter.emit(proposal)
                 print(f"Applied documentation to {table_name}")
                 
                 # Note: Column documentation would require schema metadata updates

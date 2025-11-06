@@ -1,82 +1,46 @@
 # PIMCO Municipal Bond Demo - Snowflake Ingestion Recipe
-# Ingestion configuration for DataHub Cloud
+# Use this in DataHub Cloud UI: Settings > Ingestion > Create Recipe
 
 source:
   type: snowflake
   config:
-    # Snowflake connection details (to be provided)
     account_id: ${SNOWFLAKE_ACCOUNT_ID}
     username: ${SNOWFLAKE_USERNAME}
     password: ${SNOWFLAKE_PASSWORD}
     role: ${SNOWFLAKE_ROLE}
     warehouse: ${SNOWFLAKE_WAREHOUSE}
-    database: ${SNOWFLAKE_DATABASE}
     
-    # Include schemas
-    include_schemas:
-      - BRZ_001
-      - SLV_009
-      - GLD_003
-      
-    # Include tables
-    include_tables:
-      - BRZ_001.TX_0421
-      - BRZ_001.REF_7832
-      - BRZ_001.ISS_5510
-      - SLV_009.DIM_BND_001
-      - SLV_009.DIM_ISS_002
-      - SLV_009.DIM_REG_003
-      - SLV_009.DIM_SEG_4421
-      - SLV_009.TXN_7821
-      - GLD_003.POS_9912
-      - GLD_003.SEG_4421
-      - GLD_003.REG_7733
-      - GLD_003.ISS_8844
-      - GLD_003.GRO_5566
-      
-    # Include dynamic tables
-    include_views: true
+    # Database pattern - only PIMCO_DEMO database
+    database_pattern:
+      allow:
+        - "^PIMCO_DEMO$"
     
-    # Profile configuration
-    profiling:
-      enabled: true
-      profile_patterns:
-        allow:
-          - ".*"
-      include_field_null_count: true
-      include_field_min_value: true
-      include_field_max_value: true
-      include_field_mean_value: true
-      include_field_median_value: true
-      include_field_stddev_value: true
-      include_field_sample_values: true
-      
-    # Schema patterns
-    schema_patterns:
+    # Schema patterns - only these schemas in PIMCO_DEMO
+    schema_pattern:
       allow:
         - "^BRZ_001$"
         - "^SLV_009$"
         - "^GLD_003$"
         
-    # Table patterns
-    table_patterns:
+    # Table patterns - all tables in those schemas
+    table_pattern:
       allow:
         - ".*"
         
-    # Stateful ingestion
-    stateful_ingestion:
-      enabled: true
-      remove_stale_metadata: true
-      state_provider:
-        type: datahub
-        config:
-          datahub_api:
-            server: ${DATAHUB_GMS_URL}
-            token: ${DATAHUB_PAT}
+    # Include views (dynamic tables show up as views)
+    include_views: true
+    
+    # Lineage extraction - critical for showing data flow
+    # Snowflake ingestion automatically extracts lineage from dynamic table SQL
+    include_table_lineage: true
+    include_column_lineage: true
+    
+    # Profile configuration
+    profiling:
+      enabled: false
 
 sink:
   type: datahub-rest
   config:
     server: ${DATAHUB_GMS_URL}
     token: ${DATAHUB_PAT}
-

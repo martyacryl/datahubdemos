@@ -132,38 +132,94 @@ glossary_terms:
     custom_properties:
       related_columns: "CREDIT_RATING, CR_RT"
       bond_attribute: "true"
+      
+  - name: "Position Status"
+    description: |
+      The status of a bond position indicating whether it is active or inactive. 
+      Opaque codes are used: 'A', '1', 'Y' = active positions (currently held); 
+      'I', '0', 'N' = inactive positions (sold or closed); 'U' = unknown status.
+      Only active positions are included in reporting calculations.
+    term_source: "PIMCO Business Glossary"
+    domain: "Reporting & Analytics"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      related_columns: "STATUS_CD"
+      status_codes: "A/1/Y=active, I/0/N=inactive, U=unknown"
+      business_rule: "Only active positions (A/1/Y) are included in position calculations"
+      
+  - name: "Maturity Multiplier"
+    description: |
+      A business adjustment factor applied to bond positions based on years to maturity. 
+      This multiplier reflects the time value and liquidity premium for bonds approaching maturity.
+      Opaque calculation: < 5 years to maturity = 1.05 (premium for near-term bonds), 
+      5-10 years = 1.02 (moderate premium), > 10 years = 1.0 (no premium).
+      Used in adjusted market value calculations.
+    term_source: "PIMCO Business Glossary"
+    domain: "Reporting & Analytics"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      related_columns: "MATURITY_MULTIPLIER"
+      calculation_logic: "< 5 years = 1.05, 5-10 years = 1.02, > 10 years = 1.0"
+      business_rationale: "Reflects time value and liquidity premium for bonds approaching maturity"
+      
+  - name: "Risk Factor"
+    description: |
+      A business adjustment factor applied to bond positions based on credit rating. 
+      This factor adjusts market value calculations to reflect credit risk premiums.
+      Opaque calculation: AAA/AA/A (investment grade) = 0.98 (lower risk, slight discount), 
+      BBB/BB/B (speculative grade) = 1.0 (standard risk), others = 1.05 (higher risk premium).
+      Used in adjusted market value calculations.
+    term_source: "PIMCO Business Glossary"
+    domain: "Reporting & Analytics"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      related_columns: "RISK_FACTOR"
+      calculation_logic: "AAA/AA/A = 0.98, BBB/BB/B = 1.0, others = 1.05"
+      business_rationale: "Adjusts market value to reflect credit risk premiums"
+      
+  - name: "Adjusted Market Value"
+    description: |
+      The calculated market value of a bond position adjusted for business factors including 
+      maturity premium and credit risk. This is the complex calculation used in position reporting.
+      Formula: PAR_VALUE * (1 + COUPON_RATE/100) * MATURITY_MULTIPLIER * RISK_FACTOR.
+      The maturity multiplier reflects time value for bonds approaching maturity, and the risk 
+      factor adjusts for credit risk premiums. This adjusted value is used for all position 
+      reporting and analytics.
+    term_source: "PIMCO Business Glossary"
+    domain: "Reporting & Analytics"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      related_columns: "MARKET_VALUE"
+      calculation_formula: "PAR_VALUE * (1 + COUPON_RATE/100) * MATURITY_MULTIPLIER * RISK_FACTOR"
+      business_rationale: "Provides adjusted market value reflecting maturity premium and credit risk"
 
 term_groups:
-  - name: "Bond Positions"
-    description: "Terms related to bond position tracking and aggregation"
+  - name: "Municipal Bonds"
+    description: "Complete business glossary for municipal bond portfolio management, covering positions, segments, attributes, dimensions, and transactions"
     terms:
       - "Municipal Bond Position"
-      - "Par Value"
-      - "Market Value"
-      - "Position Growth"
-      
-  - name: "Bond Segments"
-    description: "Terms related to bond classification and segmentation"
-    terms:
       - "Tax-Exempt Municipal Bond"
       - "Taxable Municipal Bond"
       - "Bond Segment"
-      
-  - name: "Bond Attributes"
-    description: "Terms describing bond characteristics and features"
-    terms:
+      - "Par Value"
+      - "Market Value"
+      - "Position Growth"
+      - "Geographic Region"
+      - "Bond Issuer"
+      - "Bond Transaction"
       - "Coupon Rate"
       - "Maturity Date"
       - "Credit Rating"
-      
-  - name: "Dimensions"
-    description: "Terms for dimensional analysis and reporting"
-    terms:
-      - "Geographic Region"
-      - "Bond Issuer"
-      
-  - name: "Transactions"
-    description: "Terms related to bond trading and transactions"
-    terms:
-      - "Bond Transaction"
+      - "Position Status"
+      - "Maturity Multiplier"
+      - "Risk Factor"
+      - "Adjusted Market Value"
 
