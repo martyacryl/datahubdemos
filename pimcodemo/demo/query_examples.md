@@ -44,13 +44,17 @@ GROUP BY REGION_CD;
 **Prompt to Claude Desktop**:
 ```
 I need to query Snowflake for total municipal bond positions by region for tax-exempt bonds. 
-The database is PIMCO_DEMO. Use DataHub to understand the schema and generate the correct SQL.
+The database is PIMCO_DEMO. 
+
+First, use DataHub to verify that any tables you plan to use have the "Authorized for Reporting" 
+structured property set to "Yes". Then use DataHub to understand the schema and generate the correct SQL.
 ```
 
 **Generated SQL** (Correct):
 ```sql
 -- Claude uses DataHub context to understand:
 -- - POS_9912 = Aggregated bond positions table
+-- - VERIFIED: POS_9912 has "Authorized for Reporting = Yes" structured property (data governance compliance)
 -- - SEGMENT_CD = Segment code (TAX_EXEMPT or TAXABLE)
 -- - REGION_CD = Region code
 -- - Need to join with DIM_SEG_4421 for segment names
@@ -72,6 +76,7 @@ ORDER BY TOTAL_PAR_VALUE DESC;
 
 **Why This Works**:
 - Claude understands `POS_9912` contains aggregated positions
+- Claude verifies `POS_9912` has "Authorized for Reporting = Yes" structured property (data governance compliance)
 - Claude knows `SEGMENT_CD` links to segment dimension
 - Claude knows `TAX_EXEMPT_FLAG = 1` means tax-exempt bonds
 - Claude correctly joins dimension tables for readable names
@@ -338,6 +343,8 @@ ORDER BY
 
 1. **Without DataHub**: LLM sees opaque names and guesses relationships
 2. **With DataHub**: LLM retrieves context about tables, columns, and relationships
-3. **Better SQL**: Context enables correct joins, filters, and aggregations
-4. **Business-Friendly**: Context helps generate SQL that returns meaningful business results
+3. **Data Governance**: LLM can verify "Authorized for Reporting" structured property before using tables
+4. **Better SQL**: Context enables correct joins, filters, and aggregations
+5. **Business-Friendly**: Context helps generate SQL that returns meaningful business results
+6. **Compliance**: DataHub structured properties ensure LLM only uses authorized tables for reporting
 

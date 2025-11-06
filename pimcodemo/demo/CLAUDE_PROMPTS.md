@@ -40,8 +40,9 @@ Please:
 1. Search DataHub for tables containing bond positions
 2. Search DataHub for tables containing region information
 3. Search DataHub for tables containing tax-exempt bond classification
-4. Use the context from DataHub to understand the schema and relationships
-5. Generate the correct SQL query using Snowflake MCP server
+4. **VERIFY** that any tables you plan to use have the "Authorized for Reporting" structured property set to "Yes"
+5. Use the context from DataHub to understand the schema and relationships
+6. Generate the correct SQL query using Snowflake MCP server (only use tables authorized for reporting)
 ```
 
 ---
@@ -71,8 +72,9 @@ The database is PIMCO_DEMO.
 Please:
 1. Search DataHub for tables containing growth metrics or time series data
 2. Search DataHub for tables containing segment information
-3. Use the context from DataHub to understand the schema and relationships
-4. Generate the correct SQL query using Snowflake MCP server
+3. **VERIFY** that any tables you plan to use have the "Authorized for Reporting" structured property set to "Yes"
+4. Use the context from DataHub to understand the schema and relationships
+5. Generate the correct SQL query using Snowflake MCP server (only use tables authorized for reporting)
 ```
 
 ---
@@ -102,8 +104,9 @@ The database is PIMCO_DEMO.
 Please:
 1. Search DataHub for tables containing issuer information
 2. Search DataHub for tables containing position value data
-3. Use the context from DataHub to understand the schema and relationships
-4. Generate the correct SQL query using Snowflake MCP server
+3. **VERIFY** that any tables you plan to use have the "Authorized for Reporting" structured property set to "Yes"
+4. Use the context from DataHub to understand the schema and relationships
+5. Generate the correct SQL query using Snowflake MCP server (only use tables authorized for reporting)
 ```
 
 ---
@@ -134,8 +137,9 @@ Please:
 1. Search DataHub for tables containing bond positions
 2. Search DataHub for tables containing bond maturity information
 3. Search DataHub for tables containing tax-exempt classification
-4. Use the context from DataHub to understand the schema and relationships
-5. Generate the correct SQL query using Snowflake MCP server
+4. **VERIFY** that any tables you plan to use have the "Authorized for Reporting" structured property set to "Yes"
+5. Use the context from DataHub to understand the schema and relationships
+6. Generate the correct SQL query using Snowflake MCP server (only use tables authorized for reporting)
 ```
 
 ---
@@ -171,11 +175,12 @@ Please:
 1. Search DataHub for tables containing bond positions and market value
 2. Search DataHub for glossary terms related to "adjusted market value" and "position status"
 3. Search DataHub for tables containing segment information
-4. Use the context from DataHub to understand:
+4. **VERIFY** that any tables you plan to use have the "Authorized for Reporting" structured property set to "Yes"
+5. Use the context from DataHub to understand:
    - Which column contains adjusted market value
    - Which status codes indicate active positions
    - How to join with segment tables
-5. Generate the correct SQL query using Snowflake MCP server
+6. Generate the correct SQL query using Snowflake MCP server (only use tables authorized for reporting)
 ```
 
 ---
@@ -211,11 +216,12 @@ Please:
 1. Search DataHub for glossary terms related to "maturity multiplier"
 2. Search DataHub for tables containing bond positions
 3. Search DataHub for columns containing maturity multiplier and position status
-4. Use the context from DataHub to understand:
+4. **VERIFY** that any tables you plan to use have the "Authorized for Reporting" structured property set to "Yes"
+5. Use the context from DataHub to understand:
    - What maturity multiplier means (opaque business logic)
    - Which status codes indicate active positions
    - How to group by maturity multiplier
-5. Generate the correct SQL query using Snowflake MCP server
+6. Generate the correct SQL query using Snowflake MCP server (only use tables authorized for reporting)
 ```
 
 ---
@@ -231,6 +237,8 @@ Then search for tables containing region information.
 
 Then search for glossary terms related to "tax-exempt" bonds.
 
+**IMPORTANT**: Before generating SQL, verify that all tables you plan to use have the "Authorized for Reporting" structured property set to "Yes". Only use tables that are authorized for reporting.
+
 Use all this context to generate a SQL query for total positions by region for tax-exempt bonds.
 ```
 
@@ -243,13 +251,16 @@ Use all this context to generate a SQL query for total positions by region for t
 - LLM doesn't know what columns mean (e.g., `SEGMENT_CD`, `STATUS_CD`)
 - LLM doesn't understand relationships between tables
 - LLM may generate incorrect SQL with wrong joins or filters
+- **LLM cannot verify if tables are authorized for reporting** (data governance risk)
 
 ### With DataHub Context:
 - LLM understands table purposes (e.g., `POS_9912` = aggregated bond positions)
 - LLM knows column meanings (e.g., `SEGMENT_CD` = segment code, links to segment dimension)
 - LLM understands relationships (e.g., `POS_9912` links to `DIM_SEG_4421` via `SEGMENT_CD`)
 - LLM can access glossary terms for opaque business logic (e.g., "Position Status", "Maturity Multiplier")
+- **LLM can verify "Authorized for Reporting" structured property before using tables** (data governance compliance)
 - LLM generates correct SQL with proper joins, filters, and aggregations
+- LLM only uses tables that are authorized for reporting
 
 ---
 
@@ -259,11 +270,15 @@ Use all this context to generate a SQL query for total positions by region for t
 
 2. **Ask DataHub to search first**: Use prompts that explicitly ask DataHub to search for relevant tables/columns/terms
 
-3. **Use glossary terms**: Reference business terms like "tax-exempt bonds", "adjusted market value", "maturity multiplier" - DataHub will find the related glossary terms
+3. **Verify authorization**: Always ask Claude to check the "Authorized for Reporting" structured property before using any tables
 
-4. **Ask for context**: Explicitly ask Claude to use DataHub context before generating SQL
+4. **Use glossary terms**: Reference business terms like "tax-exempt bonds", "adjusted market value", "maturity multiplier" - DataHub will find the related glossary terms
 
-5. **Verify results**: After generating SQL, ask Claude to explain why it chose certain tables/joins based on the DataHub context
+5. **Ask for context**: Explicitly ask Claude to use DataHub context before generating SQL
+
+6. **Verify results**: After generating SQL, ask Claude to explain why it chose certain tables/joins based on the DataHub context
+
+7. **Data governance**: Ensure Claude only uses tables with "Authorized for Reporting = Yes" to comply with data governance policies
 
 ---
 
