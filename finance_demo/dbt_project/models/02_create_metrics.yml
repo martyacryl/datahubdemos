@@ -11,8 +11,9 @@ metrics:
     type: simple
     label: "Total Revenue"
     type_params:
-      measure: total_revenue
-
+      measure:
+        name: total_revenue
+  
   - name: average_transaction_value
     description: |
       Average value per transaction. Calculated as total revenue divided by transaction count.
@@ -22,7 +23,7 @@ metrics:
     type_params:
       numerator: total_revenue
       denominator: transaction_count
-
+  
   - name: revenue_per_customer
     description: |
       Average revenue per customer. Calculated as total revenue divided by customer count.
@@ -32,7 +33,7 @@ metrics:
     type_params:
       numerator: total_revenue
       denominator: customer_count
-
+  
   - name: transaction_count
     description: |
       Total number of distinct transactions. This metric counts unique transactions
@@ -40,8 +41,9 @@ metrics:
     type: simple
     label: "Transaction Count"
     type_params:
-      measure: transaction_count
-
+      measure:
+        name: transaction_count
+  
   - name: customer_count
     description: |
       Total number of distinct customers. This metric counts unique customers
@@ -49,4 +51,5 @@ metrics:
     type: simple
     label: "Customer Count"
     type_params:
-      measure: customer_count
+      measure:
+        name: customer_count
