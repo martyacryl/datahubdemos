@@ -1,0 +1,87 @@
+version: 2
+
+# Semantic Model for Revenue Analytics
+# This semantic model defines the structure of revenue data for metric definitions
+# It references the silver_revenue model which contains cleaned transaction data
+
+semantic_models:
+  - name: revenue_semantic_model
+    description: |
+      Semantic model for revenue analytics based on the silver_revenue model.
+      This model defines entities, measures, and dimensions that can be used
+      to create business metrics for revenue analysis.
+    
+    model: ref('silver_revenue')
+    
+    entities:
+      - name: transaction
+        type: primary
+        expr: transaction_id
+    
+    measures:
+      - name: total_revenue
+        description: "Total revenue amount across all transactions"
+        agg: sum
+        expr: amount
+      
+      - name: transaction_count
+        description: "Number of distinct transactions"
+        agg: count_distinct
+        expr: transaction_id
+      
+      - name: avg_transaction_amount
+        description: "Average transaction amount"
+        agg: average
+        expr: amount
+      
+      - name: customer_count
+        description: "Number of distinct customers"
+        agg: count_distinct
+        expr: customer_id
+      
+      - name: min_transaction_amount
+        description: "Minimum transaction amount"
+        agg: min
+        expr: amount
+      
+      - name: max_transaction_amount
+        description: "Maximum transaction amount"
+        agg: max
+        expr: amount
+    
+    dimensions:
+      - name: transaction_date
+        type: time
+        type_params:
+          time_granularity: day
+      
+      - name: transaction_year
+        type: time
+        type_params:
+          time_granularity: year
+      
+      - name: transaction_quarter
+        type: time
+        type_params:
+          time_granularity: quarter
+      
+      - name: transaction_month
+        type: time
+        type_params:
+          time_granularity: month
+      
+      - name: region
+        type: categorical
+      
+      - name: customer_segment
+        type: categorical
+      
+      - name: product_id
+        type: categorical
+      
+      - name: customer_country
+        type: categorical
+      
+      - name: currency
+        type: categorical
+

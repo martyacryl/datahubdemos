@@ -15,7 +15,7 @@ models:
         data_tier: Gold
         domain: Revenue
         financial_classification: Financial
-        is_sensitive: True
+        is_sensitive: true
         terms_list: 'Revenue,Product Revenue,Financial Metrics'
     columns:
       - name: metric_type
@@ -34,25 +34,27 @@ models:
         description: Month of the transactions
       - name: transaction_count
         description: Number of distinct transactions
-        meta:
-          financial_classification: Financial
-          term: Financial Metrics
+        config:
+          meta:
+            financial_classification: Financial
+            term: Financial Metrics
       - name: customer_count
         description: Number of distinct customers
       - name: total_revenue
         description: Total revenue amount (sum of all transaction amounts)
-        meta:
-          financial_classification: Financial
-          term: Revenue
+        config:
+          meta:
+            financial_classification: Financial
+            term: Revenue
       - name: avg_transaction_amount
         description: Average transaction amount
-        meta:
-          financial_classification: Financial
-          term: Transaction Amount
+        config:
+          meta:
+            financial_classification: Financial
+            term: Transaction Amount
       - name: min_transaction_amount
         description: Minimum transaction amount
       - name: max_transaction_amount
         description: Maximum transaction amount
       - name: created_at
         description: Timestamp when the record was created
-

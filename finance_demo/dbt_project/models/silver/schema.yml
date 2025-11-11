@@ -14,29 +14,32 @@ models:
         data_tier: Silver
         domain: Revenue
         financial_classification: Financial
-        is_sensitive: True
+        is_sensitive: true
     columns:
       - name: transaction_id
         description: Unique identifier for each transaction
-        meta:
-          financial_classification: Financial
+        config:
+          meta:
+            financial_classification: Financial
       - name: customer_id
         description: Identifier for the customer making the transaction
       - name: customer_name
         description: Name of the customer (non-PII, business name)
       - name: customer_segment
         description: Customer segmentation category
-        meta:
-          financial_classification: Financial
+        config:
+          meta:
+            financial_classification: Financial
       - name: customer_country
         description: Country where the customer is located
       - name: product_id
         description: Identifier for the product being sold
       - name: amount
         description: Transaction amount in the specified currency
-        meta:
-          financial_classification: Financial
-          term: Transaction Amount
+        config:
+          meta:
+            financial_classification: Financial
+            term: Transaction Amount
       - name: transaction_date
         description: Date when the transaction occurred
       - name: region
@@ -51,4 +54,3 @@ models:
         description: Month extracted from transaction date
       - name: created_at
         description: Timestamp when the record was created
-
