@@ -1,0 +1,16 @@
+version: 2
+
+models:
+  - name: metricflow_time_spine
+    description: |
+      Time spine model for dbt semantic layer.
+      This model generates a series of dates that the semantic layer uses for time-based metrics.
+    config:
+      materialized: table
+      schema: metrics
+    meta:
+      metricflow:
+        time_spine:
+          granularity: day
+          timestamp_column: metric_time
+

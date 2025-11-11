@@ -1,0 +1,55 @@
+version: 2
+
+# dbt Metrics Definitions
+# These metrics will be automatically converted to glossary terms in DataHub
+
+metrics:
+  - name: total_revenue
+    description: |
+      Total revenue across all transactions. This is the sum of all transaction amounts
+      and represents the primary revenue metric for the business.
+    type: simple
+    label: "Total Revenue"
+    type_params:
+      measure:
+        name: total_revenue
+  
+  - name: average_transaction_value
+    description: |
+      Average value per transaction. Calculated as total revenue divided by transaction count.
+      This metric helps understand the typical transaction size.
+    type: ratio
+    label: "Average Transaction Value"
+    type_params:
+      numerator: total_revenue
+      denominator: transaction_count
+  
+  - name: revenue_per_customer
+    description: |
+      Average revenue per customer. Calculated as total revenue divided by customer count.
+      This metric measures customer value and helps with customer segmentation analysis.
+    type: ratio
+    label: "Revenue per Customer"
+    type_params:
+      numerator: total_revenue
+      denominator: customer_count
+  
+  - name: transaction_count
+    description: |
+      Total number of distinct transactions. This metric counts unique transactions
+      and is useful for understanding transaction volume.
+    type: simple
+    label: "Transaction Count"
+    type_params:
+      measure:
+        name: transaction_count
+  
+  - name: customer_count
+    description: |
+      Total number of distinct customers. This metric counts unique customers
+      who have made transactions.
+    type: simple
+    label: "Customer Count"
+    type_params:
+      measure:
+        name: customer_count
