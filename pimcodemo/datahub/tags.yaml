@@ -1,0 +1,60 @@
+# PIMCO Municipal Bond Demo - Tags
+# Classification tags for data governance and discovery
+
+tags:
+  - name: "Municipal Bonds"
+    description: "Data related to municipal bond positions, transactions, and analysis"
+    color: "#0E8A16"
+    
+  - name: "Fixed Income"
+    description: "Data related to fixed income securities and portfolio management"
+    color: "#0E8A16"
+    
+  - name: "Core Data"
+    description: "Core business data that is critical for operations and reporting"
+    color: "#0052CC"
+    
+  - name: "Financial Metrics"
+    description: "Data containing financial metrics such as par value, market value, and growth metrics"
+    color: "#1E88E5"
+    
+  - name: "Position Data"
+    description: "Data related to bond positions and holdings"
+    color: "#7B1FA2"
+    
+  - name: "Transaction Data"
+    description: "Data related to bond transactions and trades"
+    color: "#E64A19"
+    
+  - name: "Dimension Data"
+    description: "Dimensional data used for analysis and reporting (regions, segments, issuers)"
+    color: "#F57C00"
+    
+  - name: "Reporting"
+    description: "Data used for reporting and analytics, typically in gold schema"
+    color: "#00897B"
+    
+  - name: "Sensitive"
+    description: "Data that requires special handling due to sensitivity or regulatory requirements"
+    color: "#D32F2F"
+    
+  - name: "Gold Schema"
+    description: "Data in the gold schema, ready for reporting and analytics"
+    color: "#00796B"
+    
+  - name: "Silver Schema"
+    description: "Data in the silver schema, cleaned and standardized"
+    color: "#0097A7"
+    
+  - name: "Bronze Schema"
+    description: "Data in the bronze schema, raw and unprocessed"
+    color: "#5D4037"
+    
+  - name: "Aggregated"
+    description: "Data that has been aggregated or summarized for reporting purposes"
+    color: "#388E3C"
+    
+  - name: "Time Series"
+    description: "Data that tracks values over time, such as growth metrics"
+    color: "#6A1B9A"
+

@@ -1,0 +1,518 @@
+# PIMCO Municipal Bond Demo - SQL Server Staging Tables
+# 3 staging tables per final SQL Server table (9 total)
+# These are the source tables that feed into stored procedures
+
+staging_tables:
+  # Staging tables for TBL_0421 (Transaction table) - 3 staging tables
+  - schema: "dbo"
+    table: "STG_TRANSACTIONS_1"
+    description: |
+      First staging table for raw transaction data from external trading system feeds.
+      Contains transaction records before transformation by stored procedures.
+      This is the first source feeding into TBL_0421 via sp_LoadTBL_0421_From1.
+    business_purpose: |
+      Staging area for transaction data from primary trading system feed.
+      Data is transformed and loaded into TBL_0421 by stored procedures.
+    data_lineage: |
+      External Trading System → STG_TRANSACTIONS_1 → sp_LoadTBL_0421_From1 → TBL_0421
+    usage_notes: |
+      - First staging source for transaction data
+      - Used by sp_LoadTBL_0421_From1 for transformation
+      - Contains raw transaction records with opaque codes
+    tags:
+      - "Staging"
+      - "Source System"
+      - "Trading Data"
+    glossary_terms:
+      - "Bond Transaction"
+    domain: "Trading Operations"
+    owner: "datahub"
+    columns:
+      - name: "TRANSACTION_ID"
+        description: "Unique transaction identifier from source system"
+        data_type: "VARCHAR(50)"
+        glossary_terms:
+          - "Bond Transaction"
+      - name: "TRADE_DATE"
+        description: "Trade date - when the bond trade was executed"
+        data_type: "DATE"
+        tags:
+          - "Time Series"
+      - name: "SETTLEMENT_DATE"
+        description: "Settlement date - when the trade settles"
+        data_type: "DATE"
+        tags:
+          - "Time Series"
+      - name: "PRINCIPAL_AMOUNT"
+        description: "Principal amount - the par value of bonds traded"
+        data_type: "DECIMAL(18, 2)"
+        glossary_terms:
+          - "Par Value"
+        tags:
+          - "Financial Metrics"
+      - name: "ISSUER_ID"
+        description: "Issuer identifier - links to issuer dimension"
+        data_type: "VARCHAR(50)"
+        glossary_terms:
+          - "Bond Issuer"
+      - name: "BOND_ID"
+        description: "Bond identifier - links to bond reference data"
+        data_type: "VARCHAR(50)"
+      - name: "TRADE_TYPE_CODE"
+        description: "Trade type code - opaque code from source system (B, S, 1, 2)"
+        data_type: "VARCHAR(10)"
+        glossary_terms:
+          - "Bond Transaction"
+      - name: "CUSIP_NUMBER"
+        description: "CUSIP identifier for the bond"
+        data_type: "VARCHAR(9)"
+      - name: "RAW_JSON_DATA"
+        description: "Raw JSON data from source system containing additional transaction details"
+        data_type: "VARCHAR(MAX)"
+  
+  - schema: "dbo"
+    table: "STG_TRANSACTIONS_2"
+    description: |
+      Second staging table for raw transaction data from external trading system feeds.
+      Contains transaction records before transformation by stored procedures.
+      This is the second source feeding into TBL_0421 via sp_LoadTBL_0421_From2.
+    business_purpose: |
+      Staging area for transaction data from secondary trading system feed.
+      Data is transformed and loaded into TBL_0421 by stored procedures.
+    data_lineage: |
+      External Trading System → STG_TRANSACTIONS_2 → sp_LoadTBL_0421_From2 → TBL_0421
+    usage_notes: |
+      - Second staging source for transaction data
+      - Used by sp_LoadTBL_0421_From2 for transformation
+      - Contains raw transaction records with opaque codes
+    tags:
+      - "Staging"
+      - "Source System"
+      - "Trading Data"
+    glossary_terms:
+      - "Bond Transaction"
+    domain: "Trading Operations"
+    owner: "datahub"
+    columns:
+      - name: "SETTLEMENT_ID"
+        description: "Unique settlement identifier from source system (alternative to TRANSACTION_ID)"
+        data_type: "VARCHAR(50)"
+        glossary_terms:
+          - "Bond Transaction"
+      - name: "TRADE_DATE"
+        description: "Trade date - when the bond trade was executed"
+        data_type: "DATE"
+        tags:
+          - "Time Series"
+      - name: "SETTLEMENT_DATE"
+        description: "Settlement date - when the trade settles"
+        data_type: "DATE"
+        tags:
+          - "Time Series"
+      - name: "PRINCIPAL_AMOUNT"
+        description: "Principal amount - the par value of bonds traded"
+        data_type: "DECIMAL(18, 2)"
+        glossary_terms:
+          - "Par Value"
+        tags:
+          - "Financial Metrics"
+      - name: "ISSUER_ID"
+        description: "Issuer identifier - links to issuer dimension"
+        data_type: "VARCHAR(50)"
+        glossary_terms:
+          - "Bond Issuer"
+      - name: "BOND_ID"
+        description: "Bond identifier - links to bond reference data"
+        data_type: "VARCHAR(50)"
+      - name: "TRADE_TYPE_CODE"
+        description: "Trade type code - opaque code from source system (B, S, 1, 2)"
+        data_type: "VARCHAR(10)"
+        glossary_terms:
+          - "Bond Transaction"
+      - name: "CUSIP_NUMBER"
+        description: "CUSIP identifier for the bond"
+        data_type: "VARCHAR(9)"
+      - name: "RAW_JSON_DATA"
+        description: "Raw JSON data from source system containing additional transaction details"
+        data_type: "VARCHAR(MAX)"
+  
+  - schema: "dbo"
+    table: "STG_TRANSACTIONS_3"
+    description: |
+      Third staging table for raw transaction data from external trading system feeds.
+      Contains transaction records before transformation by stored procedures.
+      This is the third source feeding into TBL_0421 (not currently used by stored procedures, but available for future use).
+    business_purpose: |
+      Staging area for transaction data from tertiary trading system feed.
+      Data can be transformed and loaded into TBL_0421 by stored procedures.
+    data_lineage: |
+      External Trading System → STG_TRANSACTIONS_3 → (Future stored procedure) → TBL_0421
+    usage_notes: |
+      - Third staging source for transaction data
+      - Available for future stored procedure use
+      - Contains raw transaction records with opaque codes
+    tags:
+      - "Staging"
+      - "Source System"
+      - "Trading Data"
+    glossary_terms:
+      - "Bond Transaction"
+    domain: "Trading Operations"
+    owner: "datahub"
+    columns:
+      - name: "TRANSACTION_ID"
+        description: "Unique transaction identifier from source system"
+        data_type: "VARCHAR(50)"
+        glossary_terms:
+          - "Bond Transaction"
+      - name: "TRADE_DATE"
+        description: "Trade date - when the bond trade was executed"
+        data_type: "DATE"
+        tags:
+          - "Time Series"
+      - name: "SETTLEMENT_DATE"
+        description: "Settlement date - when the trade settles"
+        data_type: "DATE"
+        tags:
+          - "Time Series"
+      - name: "PRINCIPAL_AMOUNT"
+        description: "Principal amount - the par value of bonds traded"
+        data_type: "DECIMAL(18, 2)"
+        glossary_terms:
+          - "Par Value"
+        tags:
+          - "Financial Metrics"
+      - name: "ISSUER_ID"
+        description: "Issuer identifier - links to issuer dimension"
+        data_type: "VARCHAR(50)"
+        glossary_terms:
+          - "Bond Issuer"
+      - name: "BOND_ID"
+        description: "Bond identifier - links to bond reference data"
+        data_type: "VARCHAR(50)"
+      - name: "TRADE_TYPE_CODE"
+        description: "Trade type code - opaque code from source system (B, S, 1, 2)"
+        data_type: "VARCHAR(10)"
+        glossary_terms:
+          - "Bond Transaction"
+      - name: "CUSIP_NUMBER"
+        description: "CUSIP identifier for the bond"
+        data_type: "VARCHAR(9)"
+      - name: "RAW_JSON_DATA"
+        description: "Raw JSON data from source system containing additional transaction details"
+        data_type: "VARCHAR(MAX)"
+  
+  # Staging tables for TBL_7832 (Bond Reference table) - 3 staging tables
+  - schema: "dbo"
+    table: "STG_BOND_REF_1"
+    description: |
+      First staging table for raw bond reference data from external bond reference system feeds.
+      Contains bond characteristics before transformation by stored procedures.
+      This is the first source feeding into TBL_7832 via sp_LoadTBL_7832_From1.
+    business_purpose: |
+      Staging area for bond reference data from primary bond reference system feed.
+      Data is transformed and loaded into TBL_7832 by stored procedures.
+    data_lineage: |
+      External Bond Reference System → STG_BOND_REF_1 → sp_LoadTBL_7832_From1 → TBL_7832
+    usage_notes: |
+      - First staging source for bond reference data
+      - Used by sp_LoadTBL_7832_From1 for transformation
+      - Contains raw bond reference records with opaque codes
+    tags:
+      - "Staging"
+      - "Source System"
+      - "Dimension Data"
+    glossary_terms:
+      - "Bond Issuer"
+    domain: "Municipal Bonds"
+    owner: "datahub"
+    columns:
+      - name: "BOND_ID"
+        description: "Unique bond identifier from source system"
+        data_type: "VARCHAR(50)"
+      - name: "CUSIP_NUMBER"
+        description: "CUSIP identifier for the bond"
+        data_type: "VARCHAR(9)"
+      - name: "ISIN_NUMBER"
+        description: "ISIN identifier for the bond"
+        data_type: "VARCHAR(20)"
+      - name: "MATURITY_DATE"
+        description: "Maturity date - when bond principal is repaid"
+        data_type: "DATE"
+        glossary_terms:
+          - "Maturity Date"
+      - name: "COUPON_RATE"
+        description: "Coupon rate - annual interest rate as percentage"
+        data_type: "DECIMAL(5, 3)"
+        glossary_terms:
+          - "Coupon Rate"
+        tags:
+          - "Financial Metrics"
+      - name: "CREDIT_RATING"
+        description: "Credit rating - bond issuer creditworthiness rating"
+        data_type: "VARCHAR(5)"
+        glossary_terms:
+          - "Credit Rating"
+      - name: "ISSUER_TYPE_CODE"
+        description: "Issuer type code - opaque code from source system (E, T, 1, 0, N, Y)"
+        data_type: "VARCHAR(50)"
+      - name: "RAW_JSON_DESCRIPTION"
+        description: "Raw JSON description from source system containing additional bond details"
+        data_type: "VARCHAR(MAX)"
+  
+  - schema: "dbo"
+    table: "STG_BOND_REF_2"
+    description: |
+      Second staging table for raw bond reference data from external bond reference system feeds.
+      Contains bond characteristics before transformation by stored procedures.
+      This is the second source feeding into TBL_7832 via sp_LoadTBL_7832_From2.
+    business_purpose: |
+      Staging area for bond reference data from secondary bond reference system feed.
+      Data is transformed and loaded into TBL_7832 by stored procedures.
+    data_lineage: |
+      External Bond Reference System → STG_BOND_REF_2 → sp_LoadTBL_7832_From2 → TBL_7832
+    usage_notes: |
+      - Second staging source for bond reference data
+      - Used by sp_LoadTBL_7832_From2 for transformation
+      - Contains raw bond reference records with opaque codes
+    tags:
+      - "Staging"
+      - "Source System"
+      - "Dimension Data"
+    glossary_terms:
+      - "Bond Issuer"
+    domain: "Municipal Bonds"
+    owner: "datahub"
+    columns:
+      - name: "BOND_ID"
+        description: "Unique bond identifier from source system"
+        data_type: "VARCHAR(50)"
+      - name: "CUSIP_NUMBER"
+        description: "CUSIP identifier for the bond"
+        data_type: "VARCHAR(9)"
+      - name: "ISIN_NUMBER"
+        description: "ISIN identifier for the bond"
+        data_type: "VARCHAR(20)"
+      - name: "MATURITY_DATE"
+        description: "Maturity date - when bond principal is repaid"
+        data_type: "DATE"
+        glossary_terms:
+          - "Maturity Date"
+      - name: "COUPON_RATE"
+        description: "Coupon rate - annual interest rate as percentage"
+        data_type: "DECIMAL(5, 3)"
+        glossary_terms:
+          - "Coupon Rate"
+        tags:
+          - "Financial Metrics"
+      - name: "CREDIT_RATING"
+        description: "Credit rating - bond issuer creditworthiness rating"
+        data_type: "VARCHAR(5)"
+        glossary_terms:
+          - "Credit Rating"
+      - name: "ISSUER_TYPE_CODE"
+        description: "Issuer type code - opaque code from source system (E, T, 1, 0, N, Y)"
+        data_type: "VARCHAR(50)"
+      - name: "RAW_JSON_DESCRIPTION"
+        description: "Raw JSON description from source system containing additional bond details"
+        data_type: "VARCHAR(MAX)"
+  
+  - schema: "dbo"
+    table: "STG_BOND_REF_3"
+    description: |
+      Third staging table for raw bond reference data from external bond reference system feeds.
+      Contains bond characteristics before transformation by stored procedures.
+      This is the third source feeding into TBL_7832 (not currently used by stored procedures, but available for future use).
+    business_purpose: |
+      Staging area for bond reference data from tertiary bond reference system feed.
+      Data can be transformed and loaded into TBL_7832 by stored procedures.
+    data_lineage: |
+      External Bond Reference System → STG_BOND_REF_3 → (Future stored procedure) → TBL_7832
+    usage_notes: |
+      - Third staging source for bond reference data
+      - Available for future stored procedure use
+      - Contains raw bond reference records with opaque codes
+    tags:
+      - "Staging"
+      - "Source System"
+      - "Dimension Data"
+    glossary_terms:
+      - "Bond Issuer"
+    domain: "Municipal Bonds"
+    owner: "datahub"
+    columns:
+      - name: "BOND_ID"
+        description: "Unique bond identifier from source system"
+        data_type: "VARCHAR(50)"
+      - name: "CUSIP_NUMBER"
+        description: "CUSIP identifier for the bond"
+        data_type: "VARCHAR(9)"
+      - name: "ISIN_NUMBER"
+        description: "ISIN identifier for the bond"
+        data_type: "VARCHAR(20)"
+      - name: "MATURITY_DATE"
+        description: "Maturity date - when bond principal is repaid"
+        data_type: "DATE"
+        glossary_terms:
+          - "Maturity Date"
+      - name: "COUPON_RATE"
+        description: "Coupon rate - annual interest rate as percentage"
+        data_type: "DECIMAL(5, 3)"
+        glossary_terms:
+          - "Coupon Rate"
+        tags:
+          - "Financial Metrics"
+      - name: "CREDIT_RATING"
+        description: "Credit rating - bond issuer creditworthiness rating"
+        data_type: "VARCHAR(5)"
+        glossary_terms:
+          - "Credit Rating"
+      - name: "ISSUER_TYPE_CODE"
+        description: "Issuer type code - opaque code from source system (E, T, 1, 0, N, Y)"
+        data_type: "VARCHAR(50)"
+      - name: "RAW_JSON_DESCRIPTION"
+        description: "Raw JSON description from source system containing additional bond details"
+        data_type: "VARCHAR(MAX)"
+  
+  # Staging tables for TBL_5510 (Issuer table) - 3 staging tables
+  - schema: "dbo"
+    table: "STG_ISSUER_REF_1"
+    description: |
+      First staging table for raw issuer information from external issuer reference system feeds.
+      Contains issuer details before transformation by stored procedures.
+      This is the first source feeding into TBL_5510 via sp_LoadTBL_5510_From1.
+    business_purpose: |
+      Staging area for issuer information from primary issuer reference system feed.
+      Data is transformed and loaded into TBL_5510 by stored procedures.
+    data_lineage: |
+      External Issuer Reference System → STG_ISSUER_REF_1 → sp_LoadTBL_5510_From1 → TBL_5510
+    usage_notes: |
+      - First staging source for issuer information
+      - Used by sp_LoadTBL_5510_From1 for transformation
+      - Contains raw issuer records with opaque codes
+    tags:
+      - "Staging"
+      - "Source System"
+      - "Dimension Data"
+    glossary_terms:
+      - "Bond Issuer"
+    domain: "Municipal Bonds"
+    owner: "datahub"
+    columns:
+      - name: "ISSUER_ID"
+        description: "Unique issuer identifier from source system"
+        data_type: "VARCHAR(50)"
+        glossary_terms:
+          - "Bond Issuer"
+      - name: "ISSUER_NAME"
+        description: "Issuer name - full name of the bond issuer"
+        data_type: "VARCHAR(200)"
+      - name: "ISSUER_TYPE_CODE"
+        description: "Issuer type code - opaque code from source system"
+        data_type: "VARCHAR(50)"
+      - name: "STATE_CODE"
+        description: "State code - two-letter state abbreviation"
+        data_type: "VARCHAR(2)"
+        glossary_terms:
+          - "Geographic Region"
+      - name: "MUNICIPALITY_NAME"
+        description: "Municipality name - city or municipality name"
+        data_type: "VARCHAR(100)"
+      - name: "RAW_JSON_INFO"
+        description: "Raw JSON information from source system containing additional issuer details"
+        data_type: "VARCHAR(MAX)"
+  
+  - schema: "dbo"
+    table: "STG_ISSUER_REF_2"
+    description: |
+      Second staging table for raw issuer information from external issuer reference system feeds.
+      Contains issuer details before transformation by stored procedures.
+      This is the second source feeding into TBL_5510 via sp_LoadTBL_5510_From2.
+    business_purpose: |
+      Staging area for issuer information from secondary issuer reference system feed.
+      Data is transformed and loaded into TBL_5510 by stored procedures.
+    data_lineage: |
+      External Issuer Reference System → STG_ISSUER_REF_2 → sp_LoadTBL_5510_From2 → TBL_5510
+    usage_notes: |
+      - Second staging source for issuer information
+      - Used by sp_LoadTBL_5510_From2 for transformation
+      - Contains raw issuer records with opaque codes
+    tags:
+      - "Staging"
+      - "Source System"
+      - "Dimension Data"
+    glossary_terms:
+      - "Bond Issuer"
+    domain: "Municipal Bonds"
+    owner: "datahub"
+    columns:
+      - name: "ISSUER_ID"
+        description: "Unique issuer identifier from source system"
+        data_type: "VARCHAR(50)"
+        glossary_terms:
+          - "Bond Issuer"
+      - name: "ISSUER_NAME"
+        description: "Issuer name - full name of the bond issuer"
+        data_type: "VARCHAR(200)"
+      - name: "ISSUER_TYPE_CODE"
+        description: "Issuer type code - opaque code from source system"
+        data_type: "VARCHAR(50)"
+      - name: "STATE_CODE"
+        description: "State code - two-letter state abbreviation"
+        data_type: "VARCHAR(2)"
+        glossary_terms:
+          - "Geographic Region"
+      - name: "MUNICIPALITY_NAME"
+        description: "Municipality name - city or municipality name"
+        data_type: "VARCHAR(100)"
+      - name: "RAW_JSON_INFO"
+        description: "Raw JSON information from source system containing additional issuer details"
+        data_type: "VARCHAR(MAX)"
+  
+  - schema: "dbo"
+    table: "STG_ISSUER_REF_3"
+    description: |
+      Third staging table for raw issuer information from external issuer reference system feeds.
+      Contains issuer details before transformation by stored procedures.
+      This is the third source feeding into TBL_5510 (not currently used by stored procedures, but available for future use).
+    business_purpose: |
+      Staging area for issuer information from tertiary issuer reference system feed.
+      Data can be transformed and loaded into TBL_5510 by stored procedures.
+    data_lineage: |
+      External Issuer Reference System → STG_ISSUER_REF_3 → (Future stored procedure) → TBL_5510
+    usage_notes: |
+      - Third staging source for issuer information
+      - Available for future stored procedure use
+      - Contains raw issuer records with opaque codes
+    tags:
+      - "Staging"
+      - "Source System"
+      - "Dimension Data"
+    glossary_terms:
+      - "Bond Issuer"
+    domain: "Municipal Bonds"
+    owner: "datahub"
+    columns:
+      - name: "ISSUER_ID"
+        description: "Unique issuer identifier from source system"
+        data_type: "VARCHAR(50)"
+        glossary_terms:
+          - "Bond Issuer"
+      - name: "ISSUER_NAME"
+        description: "Issuer name - full name of the bond issuer"
+        data_type: "VARCHAR(200)"
+      - name: "ISSUER_TYPE_CODE"
+        description: "Issuer type code - opaque code from source system"
+        data_type: "VARCHAR(50)"
+      - name: "STATE_CODE"
+        description: "State code - two-letter state abbreviation"
+        data_type: "VARCHAR(2)"
+        glossary_terms:
+          - "Geographic Region"
+      - name: "MUNICIPALITY_NAME"
+        description: "Municipality name - city or municipality name"
+        data_type: "VARCHAR(100)"
+      - name: "RAW_JSON_INFO"
+        description: "Raw JSON information from source system containing additional issuer details"
+        data_type: "VARCHAR(MAX)"
+

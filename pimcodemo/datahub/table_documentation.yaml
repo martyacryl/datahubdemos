@@ -1,0 +1,1345 @@
+# PIMCO Municipal Bond Demo - Comprehensive Table Documentation
+# This file contains detailed documentation for all tables in the demo
+# Use this to add documentation programmatically via scripts/create_metadata.py
+# or manually in DataHub UI
+
+# Documentation Structure:
+# - table: Schema.Table name
+# - description: Comprehensive business description
+# - business_purpose: Why this table exists
+# - data_lineage: How data flows into/out of this table
+# - usage_notes: How to use this table
+# - columns: Detailed column descriptions
+# - relationships: Key relationships to other tables
+# - examples: Example queries or use cases
+
+tables:
+  # ============================================================================
+  # BRONZE SCHEMA - Raw Data Layer
+  # ============================================================================
+  
+  - table: "BRZ_001.TX_0421"
+    description: |
+      Raw bond transaction data ingested from trading systems. This table contains the 
+      original, unprocessed transaction records as they are received from source systems.
+      
+      **Purpose**: This is the bronze layer (raw data) that serves as the foundation for 
+      all downstream transformations. Data in this table maintains the original opaque 
+      codes and formats from source systems.
+      
+      **Data Flow**: 
+      - Source: SQL Server dbo.TBL_0421 via Fivetran ETL
+      - Extraction: Fivetran extracts from SQL Server and loads into Snowflake
+      - Destination: Transformed via dynamic table DT_TXN_7821 to SLV_009.TXN_7821
+      - Used by: Transaction processing, reconciliation, audit trails
+      
+      **Key Characteristics**:
+      - Contains opaque trade type codes (e.g., 'B', 'S', '1', '2') that need decoding
+      - Includes raw JSON data in RAW_DATA column for flexibility
+      - Trade dates and settlement dates for trade lifecycle tracking
+      - Principal amounts represent par value of bonds traded
+      
+      **Usage Notes**:
+      - Use this table for historical analysis and audit purposes
+      - For reporting, prefer the cleaned version in SLV_009.TXN_7821
+      - Opaque codes (TRD_TYPE) need to be decoded using CASE statements or joins
+    business_purpose: |
+      Provides a complete audit trail of all bond transactions from source systems.
+      Maintains original data formats and opaque codes for compliance and reconciliation.
+    data_lineage: |
+      SQL Server dbo.TBL_0421 → Fivetran → TX_0421 → DT_TXN_7821 → SLV_009.TXN_7821 → GLD_003 aggregation tables
+    usage_notes: |
+      - Use for historical transaction analysis
+      - Reconciliation and audit purposes
+      - Source of truth for transaction details
+      - Prefer cleaned versions (SLV_009.TXN_7821) for reporting
+    relationships:
+      - links_to: "BRZ_001.REF_7832 via BND_ID"
+      - links_to: "BRZ_001.ISS_5510 via ISS_ID"
+      - transforms_to: "SLV_009.TXN_7821 via dynamic table DT_TXN_7821"
+    columns:
+      TX_ID:
+        description: "Unique identifier for each transaction. Primary key of the table."
+        data_type: "VARCHAR(50)"
+        business_meaning: "Transaction identifier from source trading system"
+        example: "TX001, TX002"
+        
+      TD_DATE:
+        description: "Trade date - the date when the bond trade was executed in the market."
+        data_type: "DATE"
+        business_meaning: "Date when the buy or sell order was executed"
+        example: "2024-01-15"
+        notes: "Used for trade lifecycle tracking and reporting"
+        
+      STL_DATE:
+        description: "Settlement date - the date when the trade settles and ownership transfers."
+        data_type: "DATE"
+        business_meaning: "Date when cash and securities are exchanged"
+        example: "2024-01-17"
+        notes: "Typically 2-3 business days after trade date (T+2 or T+3)"
+        
+      PRN_AMT:
+        description: "Principal amount - the par value of bonds traded in this transaction."
+        data_type: "DECIMAL(18, 2)"
+        business_meaning: "Total par value of bonds bought or sold"
+        example: "1000000.00"
+        notes: "Represents the face value, not market value"
+        glossary_term: "Par Value"
+        
+      ISS_ID:
+        description: "Issuer identifier - links to BRZ_001.ISS_5510 for issuer details."
+        data_type: "VARCHAR(50)"
+        business_meaning: "Foreign key to issuer dimension"
+        example: "ISS001"
+        relationships:
+          - references: "BRZ_001.ISS_5510.ISS_ID"
+        
+      BND_ID:
+        description: "Bond identifier - links to BRZ_001.REF_7832 for bond characteristics."
+        data_type: "VARCHAR(50)"
+        business_meaning: "Foreign key to bond reference data"
+        example: "BND001"
+        relationships:
+          - references: "BRZ_001.REF_7832.BND_ID"
+        
+      TRD_TYPE:
+        description: |
+          Trade type - opaque code from source system indicating buy or sell transaction.
+          Codes include: 'B' (Buy), 'S' (Sell), '1' (Buy), '2' (Sell).
+        data_type: "VARCHAR(10)"
+        business_meaning: "Opaque code for trade direction (buy/sell)"
+        example: "B, S, 1, 2"
+        notes: |
+          This is an opaque code that needs decoding. Use SLV_009.TXN_7821.TRADE_TYPE 
+          for cleaned values (BUY/SELL).
+        glossary_term: "Bond Transaction"
+        
+      CUSIP:
+        description: |
+          CUSIP (Committee on Uniform Securities Identification Procedures) identifier 
+          for the bond. 9-character alphanumeric code uniquely identifying the security.
+        data_type: "VARCHAR(9)"
+        business_meaning: "Standard industry identifier for the bond"
+        example: "123456789"
+        notes: "Used for trade matching and reporting"
+        
+      RAW_DATA:
+        description: |
+          Raw JSON data from source system. Contains additional unstructured information 
+          about the transaction.
+        data_type: "VARIANT"
+        business_meaning: "Flexible storage for source system metadata"
+        example: '{"trade_id": "T001", "code": "B"}'
+        notes: "Contains opaque codes and additional transaction metadata"
+        
+  - table: "BRZ_001.REF_7832"
+    description: |
+      Reference data for municipal bonds. Contains bond characteristics including 
+      maturity date, coupon rate, credit rating, and issuer type classification.
+      
+      **Purpose**: Master reference table for bond attributes. This is the source of 
+      truth for bond characteristics before they are cleaned and standardized.
+      
+      **Data Flow**:
+      - Source: SQL Server dbo.TBL_7832 via Fivetran ETL
+      - Extraction: Fivetran extracts from SQL Server and loads into Snowflake
+      - Destination: Transformed via dynamic table DT_DIM_BND_001 to SLV_009.DIM_BND_001
+      - Used by: Bond analysis, position reporting, risk calculations
+      
+      **Key Characteristics**:
+      - Contains opaque issuer type codes (e.g., 'E', 'T', '1', '0', 'N', 'Y')
+      - Opaque codes represent tax-exempt vs taxable status
+      - Includes standard bond identifiers (CUSIP, ISIN)
+      - Credit ratings from rating agencies
+      
+      **Usage Notes**:
+      - Use for bond attribute lookups
+      - For reporting, prefer the standardized version in SLV_009.DIM_BND_001
+      - Opaque ISS_TYPE codes need decoding to determine tax status
+    business_purpose: |
+      Master reference for bond characteristics and attributes. Provides detailed 
+      bond information for portfolio analysis and reporting.
+    data_lineage: |
+      SQL Server dbo.TBL_7832 → Fivetran → REF_7832 → DT_DIM_BND_001 → SLV_009.DIM_BND_001 → GLD_003 aggregation
+    usage_notes: |
+      - Bond attribute lookups
+      - Maturity analysis
+      - Credit risk assessment
+      - Prefer cleaned version (SLV_009.DIM_BND_001) for reporting
+    relationships:
+      - links_from: "BRZ_001.TX_0421 via BND_ID"
+      - transforms_to: "SLV_009.DIM_BND_001 via dynamic table DT_DIM_BND_001"
+    columns:
+      BND_ID:
+        description: "Unique identifier for each bond. Primary key of the table."
+        data_type: "VARCHAR(50)"
+        business_meaning: "Bond identifier from reference data system"
+        example: "BND001"
+        
+      CUSIP:
+        description: |
+          CUSIP identifier - 9-character alphanumeric code uniquely identifying the bond.
+        data_type: "VARCHAR(9)"
+        business_meaning: "Standard industry identifier"
+        example: "123456789"
+        
+      ISIN:
+        description: |
+          ISIN (International Securities Identification Number) - 12-character 
+          alphanumeric code for international securities identification.
+        data_type: "VARCHAR(20)"
+        business_meaning: "International standard identifier"
+        example: "US000123456789"
+        
+      MAT_DATE:
+        description: |
+          Maturity date - the date when the bond principal will be repaid to investors.
+        data_type: "DATE"
+        business_meaning: "Date when bond reaches maturity"
+        example: "2030-01-15"
+        glossary_term: "Maturity Date"
+        notes: "Used for maturity analysis and duration calculations"
+        
+      CPN_RATE:
+        description: |
+          Coupon rate - the annual interest rate paid by the bond issuer, expressed 
+          as a percentage (e.g., 3.5% stored as 3.5).
+        data_type: "DECIMAL(5, 3)"
+        business_meaning: "Annual interest rate percentage"
+        example: "3.500"
+        glossary_term: "Coupon Rate"
+        notes: "Used for yield calculations and income projections"
+        
+      CR_RT:
+        description: |
+          Credit rating - bond issuer's creditworthiness rating from rating agencies 
+          (e.g., AAA, AA+, AA, A+, A, BBB+).
+        data_type: "VARCHAR(5)"
+        business_meaning: "Credit risk assessment rating"
+        example: "AAA, AA+, BBB"
+        glossary_term: "Credit Rating"
+        notes: "Used for credit risk analysis and portfolio construction"
+        
+      ISS_TYPE:
+        description: |
+          Issuer type - opaque code from source system indicating bond classification.
+          Codes include: 'E' (tax-exempt), 'T' (taxable), '1' (tax-exempt), '0' (taxable),
+          'N' (taxable), 'Y' (tax-exempt).
+        data_type: "VARCHAR(50)"
+        business_meaning: "Opaque code for tax status classification"
+        example: "E, T, 1, 0, N, Y"
+        notes: |
+          This is an opaque code that needs decoding. Use SLV_009.DIM_BND_001.SEGMENT_CD 
+          for cleaned segment classification ('001' = tax-exempt, '002' = taxable).
+        
+      RAW_DESC:
+        description: |
+          Raw JSON description from source system. Contains additional unstructured 
+          bond information.
+        data_type: "VARIANT"
+        business_meaning: "Flexible storage for source system metadata"
+        example: '{"desc": "5-year bond", "code": "E"}'
+        
+  - table: "BRZ_001.ISS_5510"
+    description: |
+      Issuer information for municipal bond issuers. Contains issuer name, type, 
+      state, and municipality details.
+      
+      **Purpose**: Master reference table for bond issuer information. Provides 
+      issuer details before cleaning and standardization.
+      
+      **Data Flow**:
+      - Source: SQL Server dbo.TBL_5510 via Fivetran ETL
+      - Extraction: Fivetran extracts from SQL Server and loads into Snowflake
+      - Destination: Transformed via dynamic table DT_DIM_ISS_002 to SLV_009.DIM_ISS_002
+      - Used by: Issuer analysis, geographic reporting, risk assessment
+      
+      **Key Characteristics**:
+      - Contains issuer names and geographic information
+      - Includes opaque issuer type codes
+      - State and municipality information for geographic analysis
+      
+      **Usage Notes**:
+      - Use for issuer lookups and geographic analysis
+      - For reporting, prefer the standardized version in SLV_009.DIM_ISS_002
+    business_purpose: |
+      Master reference for bond issuer information. Provides issuer details for 
+      portfolio analysis and geographic reporting.
+    data_lineage: |
+      SQL Server dbo.TBL_5510 → Fivetran → ISS_5510 → DT_DIM_ISS_002 → SLV_009.DIM_ISS_002 → GLD_003 aggregation
+    usage_notes: |
+      - Issuer lookups
+      - Geographic analysis
+      - Risk assessment
+      - Prefer cleaned version (SLV_009.DIM_ISS_002) for reporting
+    relationships:
+      - links_from: "BRZ_001.TX_0421 via ISS_ID"
+      - links_from: "BRZ_001.REF_7832 via ISS_TYPE"
+      - transforms_to: "SLV_009.DIM_ISS_002 via dynamic table DT_DIM_ISS_002"
+    columns:
+      ISS_ID:
+        description: "Unique identifier for each issuer. Primary key of the table."
+        data_type: "VARCHAR(50)"
+        business_meaning: "Issuer identifier from reference data system"
+        example: "ISS001"
+        glossary_term: "Bond Issuer"
+        
+      ISS_NAME:
+        description: |
+          Issuer name - full name of the bond issuer (e.g., state, city, authority name).
+        data_type: "VARCHAR(200)"
+        business_meaning: "Full issuer name"
+        example: "Issuer 1 CA, State of California"
+        
+      ISS_TYPE:
+        description: |
+          Issuer type - classification of the bond issuer (e.g., municipal, state, 
+          authority). May contain opaque codes.
+        data_type: "VARCHAR(50)"
+        business_meaning: "Issuer classification"
+        example: "Municipal, State, Authority"
+        
+      STATE_CD:
+        description: |
+          State code - two-letter state abbreviation (e.g., CA, NY, TX).
+        data_type: "VARCHAR(2)"
+        business_meaning: "State where issuer is located"
+        example: "CA, NY, TX"
+        glossary_term: "Geographic Region"
+        notes: "Used for geographic analysis and regional reporting"
+        
+      MUN_NAME:
+        description: |
+          Municipality name - city or municipality name where the issuer is located.
+        data_type: "VARCHAR(100)"
+        business_meaning: "City or municipality name"
+        example: "Los Angeles, New York City"
+        
+      RAW_INFO:
+        description: |
+          Raw JSON information from source system. Contains additional unstructured 
+          issuer information.
+        data_type: "VARIANT"
+        business_meaning: "Flexible storage for source system metadata"
+        example: '{"type": "issuer", "code": "E"}'
+        
+  # ============================================================================
+  # SILVER SCHEMA - Cleaned and Standardized Data Layer
+  # ============================================================================
+  
+  - table: "SLV_009.TXN_7821"
+    description: |
+      Cleaned and standardized bond transaction data. This view provides a business-friendly 
+      interface over the dynamic table DT_TXN_7821, which transforms raw transactions 
+      from the bronze layer.
+      
+      **Purpose**: Provides cleaned transaction data with decoded trade types and 
+      standardized formats for reporting and analysis.
+      
+      **Data Flow**:
+      - Source: BRZ_001.TX_0421 via dynamic table DT_TXN_7821
+      - Destination: Used for transaction analysis and feeds into gold layer aggregations
+      - Transformation: Decodes opaque TRD_TYPE codes to readable TRADE_TYPE (BUY/SELL)
+      
+      **Key Characteristics**:
+      - Decoded trade types (BUY/SELL instead of opaque codes)
+      - Standardized column names (PRINCIPAL_AMOUNT instead of PRN_AMT)
+      - Cleaned and validated data
+      - Suitable for business reporting
+      
+      **Usage Notes**:
+      - Use this table for transaction analysis and reporting
+      - Prefer this over BRZ_001.TX_0421 for business queries
+      - View is built on dynamic table, so data refreshes automatically
+    business_purpose: |
+      Provides cleaned and standardized transaction data for business reporting and analysis.
+      Decodes opaque codes into business-friendly values.
+    data_lineage: |
+      BRZ_001.TX_0421 → DT_TXN_7821 → SLV_009.TXN_7821 (view) → GLD_003 aggregations
+    usage_notes: |
+      - Transaction analysis
+      - Trade reconciliation
+      - Business reporting
+      - Prefer this over bronze layer for queries
+    relationships:
+      - source: "BRZ_001.TX_0421 via dynamic table DT_TXN_7821"
+      - links_to: "SLV_009.DIM_BND_001 via BOND_ID"
+      - links_to: "SLV_009.DIM_ISS_002 via ISSUER_ID"
+    columns:
+      TRANSACTION_ID:
+        description: "Unique identifier for each transaction. Inherited from TX_ID."
+        data_type: "VARCHAR(50)"
+        business_meaning: "Transaction identifier"
+        example: "TX001"
+        
+      TRADE_DATE:
+        description: "Trade date - when the bond trade was executed."
+        data_type: "DATE"
+        business_meaning: "Date when trade executed"
+        example: "2024-01-15"
+        
+      SETTLEMENT_DATE:
+        description: "Settlement date - when the trade settles."
+        data_type: "DATE"
+        business_meaning: "Date when trade settles"
+        example: "2024-01-17"
+        
+      PRINCIPAL_AMOUNT:
+        description: "Principal amount - par value of bonds traded."
+        data_type: "DECIMAL(18, 2)"
+        business_meaning: "Par value of bonds traded"
+        example: "1000000.00"
+        glossary_term: "Par Value"
+        
+      ISSUER_ID:
+        description: "Issuer identifier - links to SLV_009.DIM_ISS_002."
+        data_type: "VARCHAR(50)"
+        business_meaning: "Issuer identifier"
+        example: "ISS001"
+        relationships:
+          - references: "SLV_009.DIM_ISS_002.ISS_ID"
+        
+      BOND_ID:
+        description: "Bond identifier - links to SLV_009.DIM_BND_001."
+        data_type: "VARCHAR(50)"
+        business_meaning: "Bond identifier"
+        example: "BND001"
+        relationships:
+          - references: "SLV_009.DIM_BND_001.BND_ID"
+        
+      TRADE_TYPE:
+        description: |
+          Trade type - decoded value indicating transaction direction.
+          Values: 'BUY' or 'SELL' (decoded from opaque codes in bronze layer).
+        data_type: "VARCHAR(10)"
+        business_meaning: "Trade direction (buy or sell)"
+        example: "BUY, SELL"
+        notes: "Decoded from opaque codes in BRZ_001.TX_0421.TRD_TYPE"
+        glossary_term: "Bond Transaction"
+        
+      CUSIP:
+        description: "CUSIP identifier for the bond."
+        data_type: "VARCHAR(9)"
+        business_meaning: "Standard bond identifier"
+        example: "123456789"
+        
+  - table: "SLV_009.DIM_BND_001"
+    description: |
+      Cleaned and standardized bond dimension table. This view provides a business-friendly 
+      interface over the dynamic table DT_DIM_BND_001, which transforms raw bond reference 
+      data from the bronze layer.
+      
+      **Purpose**: Master dimension table for bond attributes with standardized segment 
+      codes and cleaned data values.
+      
+      **Data Flow**:
+      - Source: BRZ_001.REF_7832 via dynamic table DT_DIM_BND_001
+      - Destination: Used for position reporting and bond analysis
+      - Transformation: Decodes opaque ISS_TYPE codes to segment codes ('001', '002', 'X')
+      
+      **Key Characteristics**:
+      - Standardized segment codes: '001' (tax-exempt), '002' (taxable), 'X' (other)
+      - Cleaned column names (MATURITY_DATE instead of MAT_DATE)
+      - Standardized data formats
+      - Links to issuer dimension
+      
+      **Usage Notes**:
+      - Use for bond attribute lookups in reporting queries
+      - Join with position tables using BOND_ID
+      - Segment codes are standardized (not opaque)
+    business_purpose: |
+      Master dimension table for bond attributes. Provides standardized bond information 
+      for portfolio analysis and reporting.
+    data_lineage: |
+      BRZ_001.REF_7832 → DT_DIM_BND_001 → SLV_009.DIM_BND_001 (view) → GLD_003 aggregations
+    usage_notes: |
+      - Bond attribute lookups
+      - Maturity analysis
+      - Credit risk assessment
+      - Segment classification
+    relationships:
+      - source: "BRZ_001.REF_7832 via dynamic table DT_DIM_BND_001"
+      - links_to: "SLV_009.DIM_ISS_002 via ISSUER_ID"
+      - links_to: "SLV_009.DIM_SEG_4421 via SEGMENT_CD"
+      - used_by: "GLD_003.POS_9912 via BOND_ID"
+    columns:
+      BND_ID:
+        description: "Unique identifier for each bond. Primary key."
+        data_type: "VARCHAR(50)"
+        business_meaning: "Bond identifier"
+        example: "BND001"
+        
+      CUSIP:
+        description: "CUSIP identifier for the bond."
+        data_type: "VARCHAR(9)"
+        business_meaning: "Standard bond identifier"
+        example: "123456789"
+        
+      ISIN:
+        description: "ISIN identifier for the bond."
+        data_type: "VARCHAR(20)"
+        business_meaning: "International bond identifier"
+        example: "US000123456789"
+        
+      MATURITY_DATE:
+        description: "Maturity date - when the bond principal will be repaid."
+        data_type: "DATE"
+        business_meaning: "Date when bond reaches maturity"
+        example: "2030-01-15"
+        glossary_term: "Maturity Date"
+        
+      COUPON_RATE:
+        description: |
+          Coupon rate - annual interest rate as a decimal (e.g., 3.5% stored as 0.035).
+        data_type: "DECIMAL(5, 3)"
+        business_meaning: "Annual interest rate"
+        example: "0.035"
+        glossary_term: "Coupon Rate"
+        
+      CREDIT_RATING:
+        description: "Credit rating - bond issuer creditworthiness rating."
+        data_type: "VARCHAR(5)"
+        business_meaning: "Credit risk rating"
+        example: "AAA, AA+, BBB"
+        glossary_term: "Credit Rating"
+        
+      ISSUER_TYPE:
+        description: "Issuer type - standardized issuer classification."
+        data_type: "VARCHAR(50)"
+        business_meaning: "Issuer classification"
+        example: "Municipal, State, Authority"
+        
+      SEGMENT_CD:
+        description: |
+          Segment code - standardized segment classification decoded from opaque codes.
+          Values: '001' (tax-exempt), '002' (taxable), 'X' (other).
+        data_type: "VARCHAR(20)"
+        business_meaning: "Standardized segment classification"
+        example: "001, 002, X"
+        notes: |
+          '001' = Tax-Exempt Municipal Bond
+          '002' = Taxable Municipal Bond
+          'X' = Other
+        glossary_term: "Bond Segment"
+        relationships:
+          - references: "SLV_009.DIM_SEG_4421.SEGMENT_CD"
+        
+      ISSUER_ID:
+        description: "Issuer identifier - links to SLV_009.DIM_ISS_002."
+        data_type: "VARCHAR(50)"
+        business_meaning: "Issuer identifier"
+        example: "ISS001"
+        relationships:
+          - references: "SLV_009.DIM_ISS_002.ISS_ID"
+        
+      CREATED_TS:
+        description: "Timestamp when the record was created."
+        data_type: "TIMESTAMP_NTZ"
+        business_meaning: "Record creation timestamp"
+        
+      UPDATED_TS:
+        description: "Timestamp when the record was last updated."
+        data_type: "TIMESTAMP_NTZ"
+        business_meaning: "Record update timestamp"
+        
+  - table: "SLV_009.DIM_ISS_002"
+    description: |
+      Cleaned and standardized issuer dimension table. This view provides a business-friendly 
+      interface over the dynamic table DT_DIM_ISS_002, which transforms raw issuer data 
+      from the bronze layer.
+      
+      **Purpose**: Master dimension table for issuer information with standardized 
+      region classification.
+      
+      **Data Flow**:
+      - Source: BRZ_001.ISS_5510 via dynamic table DT_DIM_ISS_002
+      - Destination: Used for issuer analysis and geographic reporting
+      - Transformation: Adds region classification based on state codes
+      
+      **Key Characteristics**:
+      - Standardized issuer names
+      - Region classification (WEST, NORTHEAST, SOUTH, MIDWEST, OTHER)
+      - Cleaned data formats
+      - Geographic information for reporting
+      
+      **Usage Notes**:
+      - Use for issuer lookups in reporting queries
+      - Join with position tables using ISSUER_ID
+      - Region codes link to DIM_REG_003
+    business_purpose: |
+      Master dimension table for issuer information. Provides standardized issuer details 
+      with geographic classification for portfolio analysis.
+    data_lineage: |
+      BRZ_001.ISS_5510 → DT_DIM_ISS_002 → SLV_009.DIM_ISS_002 (view) → GLD_003 aggregations
+    usage_notes: |
+      - Issuer lookups
+      - Geographic analysis
+      - Risk assessment
+      - Regional reporting
+    relationships:
+      - source: "BRZ_001.ISS_5510 via dynamic table DT_DIM_ISS_002"
+      - links_to: "SLV_009.DIM_REG_003 via REGION_CD"
+      - used_by: "GLD_003.POS_9912 via ISSUER_ID"
+      - used_by: "GLD_003.ISS_8844 via ISSUER_ID"
+    columns:
+      ISS_ID:
+        description: "Unique identifier for each issuer. Primary key."
+        data_type: "VARCHAR(50)"
+        business_meaning: "Issuer identifier"
+        example: "ISS001"
+        glossary_term: "Bond Issuer"
+        
+      ISSUER_NAME:
+        description: "Standardized issuer name."
+        data_type: "VARCHAR(200)"
+        business_meaning: "Full issuer name"
+        example: "Issuer 1 CA"
+        
+      ISSUER_TYPE:
+        description: "Standardized issuer type classification."
+        data_type: "VARCHAR(50)"
+        business_meaning: "Issuer classification"
+        example: "Municipal, State, Authority"
+        
+      STATE_CODE:
+        description: "Two-letter state code abbreviation."
+        data_type: "VARCHAR(2)"
+        business_meaning: "State where issuer located"
+        example: "CA, NY, TX"
+        
+      REGION_CD:
+        description: |
+          Region code - standardized geographic region classification.
+          Values: 'WEST', 'NORTHEAST', 'SOUTH', 'MIDWEST', 'OTHER'.
+        data_type: "VARCHAR(10)"
+        business_meaning: "Geographic region classification"
+        example: "WEST, NORTHEAST, SOUTH"
+        notes: "Used for geographic analysis and regional reporting"
+        glossary_term: "Geographic Region"
+        relationships:
+          - references: "SLV_009.DIM_REG_003.REGION_CD"
+        
+  - table: "SLV_009.DIM_REG_003"
+    description: |
+      Region dimension table. Defines geographic regions for bond issuer analysis.
+      
+      **Purpose**: Reference dimension table that maps region codes to region names 
+      for geographic reporting and analysis.
+      
+      **Data Flow**:
+      - Source: Static reference data (manually maintained)
+      - Destination: Used by DIM_ISS_002 for region classification
+      - Used by: GLD_003 aggregations for regional reporting
+      
+      **Key Characteristics**:
+      - Static reference table (not transformed from bronze layer)
+      - Defines geographic regions: West, Northeast, South, Midwest, Other
+      - Used for regional portfolio analysis
+      
+      **Usage Notes**:
+      - Join with position/issuer tables to get region names
+      - Use for regional reporting and analysis
+      - Static reference - updates manually
+    business_purpose: |
+      Defines geographic regions for bond issuer classification and regional portfolio analysis.
+    data_lineage: |
+      Static Reference Data → DIM_REG_003 → Used by DIM_ISS_002 → GLD_003 aggregations
+    usage_notes: |
+      - Regional reporting
+      - Geographic analysis
+      - Join with issuer and position tables
+    relationships:
+      - used_by: "SLV_009.DIM_ISS_002 via REGION_CD"
+      - used_by: "GLD_003.POS_9912 via REGION_CD"
+      - used_by: "GLD_003.REG_7733 via REGION_CD"
+    columns:
+      REGION_CD:
+        description: |
+          Region code - unique identifier for geographic region.
+          Values: 'WEST', 'NORTHEAST', 'SOUTH', 'MIDWEST', 'OTHER'.
+        data_type: "VARCHAR(10)"
+        business_meaning: "Geographic region identifier"
+        example: "WEST, NORTHEAST"
+        glossary_term: "Geographic Region"
+        
+      REGION_NAME:
+        description: "Full region name for display in reports."
+        data_type: "VARCHAR(100)"
+        business_meaning: "Human-readable region name"
+        example: "Western Region, Northeast Region"
+        
+      STATE_CODE:
+        description: "Primary state code for the region (if applicable)."
+        data_type: "VARCHAR(2)"
+        business_meaning: "Primary state in region"
+        example: "CA, NY"
+        
+      REGION_TYPE:
+        description: "Type of region classification (e.g., GEOGRAPHIC)."
+        data_type: "VARCHAR(50)"
+        business_meaning: "Region classification type"
+        example: "GEOGRAPHIC"
+        
+  - table: "SLV_009.DIM_SEG_4421"
+    description: |
+      Segment dimension table. Defines bond segments (tax-exempt vs taxable) for 
+      portfolio analysis.
+      
+      **Purpose**: Reference dimension table that maps segment codes to segment names 
+      and tax-exempt flags for portfolio analysis.
+      
+      **Data Flow**:
+      - Source: Static reference data (manually maintained)
+      - Destination: Used by DIM_BND_001 for segment classification
+      - Used by: GLD_003 aggregations for segment reporting
+      
+      **Key Characteristics**:
+      - Static reference table (not transformed from bronze layer)
+      - Defines bond segments: Tax-Exempt ('001'), Taxable ('002'), Other ('X')
+      - Includes tax-exempt flag for filtering
+      
+      **Usage Notes**:
+      - Join with position/bond tables to get segment names
+      - Use for segment-based reporting and analysis
+      - Filter by TAX_EXEMPT_FLAG for tax-exempt bonds
+    business_purpose: |
+      Defines bond segments for portfolio analysis. Maps segment codes to business-friendly 
+      names and tax-exempt status.
+    data_lineage: |
+      Static Reference Data → DIM_SEG_4421 → Used by DIM_BND_001 → GLD_003 aggregations
+    usage_notes: |
+      - Segment-based reporting
+      - Tax-exempt vs taxable analysis
+      - Join with bond and position tables
+    relationships:
+      - used_by: "SLV_009.DIM_BND_001 via SEGMENT_CD"
+      - used_by: "GLD_003.POS_9912 via SEGMENT_CD"
+      - used_by: "GLD_003.SEG_4421 via SEGMENT_CD"
+    columns:
+      SEGMENT_CD:
+        description: |
+          Segment code - unique identifier for bond segment.
+          Values: '001' (tax-exempt), '002' (taxable), 'X' (other).
+        data_type: "VARCHAR(20)"
+        business_meaning: "Segment identifier"
+        example: "001, 002, X"
+        notes: |
+          '001' = Tax-Exempt Municipal Bond
+          '002' = Taxable Municipal Bond
+          'X' = Other
+        glossary_term: "Bond Segment"
+        
+      SEGMENT_NAME:
+        description: "Full segment name for display in reports."
+        data_type: "VARCHAR(100)"
+        business_meaning: "Human-readable segment name"
+        example: "Tax-Exempt Municipal Bonds, Taxable Municipal Bonds"
+        glossary_term: "Tax-Exempt Municipal Bond, Taxable Municipal Bond"
+        
+      SEG_TYPE:
+        description: "Segment type classification code."
+        data_type: "VARCHAR(50)"
+        business_meaning: "Segment type code"
+        example: "E, T"
+        
+      TAX_EXEMPT_FLAG:
+        description: |
+          Tax-exempt flag - indicates if bonds in this segment are tax-exempt.
+          Values: 1 (tax-exempt), 0 (taxable).
+        data_type: "NUMBER(1, 0)"
+        business_meaning: "Tax-exempt status indicator"
+        example: "1, 0"
+        notes: "Use WHERE TAX_EXEMPT_FLAG = 1 to filter for tax-exempt bonds"
+        
+  # ============================================================================
+  # GOLD SCHEMA - Reporting and Analytics Layer
+  # ============================================================================
+  
+  - table: "GLD_003.POS_9912"
+    description: |
+      Aggregated bond positions table with opaque business logic. Contains total positions 
+      by bond, issuer, region, and segment with par value and adjusted market value. 
+      This is the primary table for position reporting and analysis.
+      
+      **Purpose**: Provides aggregated position data optimized for business reporting with 
+      complex business rules applied. This is the gold layer (reporting-ready) data that 
+      serves as the foundation for all position reporting and analytics.
+      
+      **Data Flow**:
+      - Source: Aggregated from transactions and bond dimensions via dynamic table DT_POS_9912
+      - Destination: Used for all position reporting, dashboards, and analytics
+      - Transformation: Aggregates transaction data into position-level metrics with opaque business logic
+      
+      **Key Characteristics**:
+      - Position-level aggregation (one row per bond position)
+      - Includes both par value and adjusted market value (complex calculation)
+      - Opaque status code filtering (only active positions: 'A', '1', 'Y')
+      - Opaque maturity multiplier calculation (based on years to maturity)
+      - Opaque risk factor calculation (based on credit ratings)
+      - Complex market value formula: PAR_VALUE * (1 + COUPON_RATE/100) * MATURITY_MULTIPLIER * RISK_FACTOR
+      - Links to all dimensions (bond, issuer, region, segment)
+      - Time-series data (AS_OF_DATE for historical snapshots)
+      - Optimized for reporting queries
+      
+      **Opaque Business Logic**:
+      - **Status Code Filtering**: Only includes active positions. Opaque codes: 'A', '1', 'Y' = active 
+        (currently held), 'I', '0', 'N' = inactive (sold/closed, excluded), 'U' = unknown.
+      - **Maturity Multiplier**: Opaque calculation based on years to maturity:
+        - < 5 years to maturity → multiplier 1.05 (premium for near-term bonds)
+        - 5-10 years → multiplier 1.02 (moderate premium)
+        - > 10 years → multiplier 1.0 (no premium)
+        Business rationale: Reflects time value and liquidity premium for bonds approaching maturity.
+      - **Risk Factor**: Opaque calculation based on credit rating:
+        - AAA/AA/A (investment grade) → risk factor 0.98 (lower risk, slight discount)
+        - BBB/BB/B (speculative grade) → risk factor 1.0 (standard risk)
+        - Others → risk factor 1.05 (higher risk premium)
+        Business rationale: Adjusts market value to reflect credit risk premiums.
+      - **Adjusted Market Value**: Complex calculation using all factors:
+        MARKET_VALUE = PAR_VALUE * (1 + COUPON_RATE/100) * MATURITY_MULTIPLIER * RISK_FACTOR
+        This adjusted value reflects maturity premium and credit risk, used for all position reporting.
+      
+      **Usage Notes**:
+      - Primary table for position reporting
+      - Always filter by AS_OF_DATE for current positions
+      - Only includes active positions (status codes 'A', '1', 'Y')
+      - MARKET_VALUE is adjusted (not simple par + interest)
+      - Join with dimension tables for readable names
+      - Use for total position calculations and analysis
+      - The opaque business logic is documented in DataHub glossary terms
+    business_purpose: |
+      Provides aggregated bond positions for business reporting and analysis. The primary 
+      table for position reporting, dashboards, and analytics.
+    data_lineage: |
+      SLV_009.TXN_7821 + SLV_009.DIM_BND_001 + SLV_009.DIM_ISS_002 → DT_POS_9912 → GLD_003.POS_9912
+    usage_notes: |
+      - Position reporting
+      - Portfolio analysis
+      - Total position calculations
+      - Always filter by latest AS_OF_DATE for current positions
+      - Join with dimension tables for readable names
+    relationships:
+      - source: "Aggregated from transactions via dynamic table DT_POS_9912"
+      - links_to: "SLV_009.DIM_BND_001 via BOND_ID"
+      - links_to: "SLV_009.DIM_ISS_002 via ISSUER_ID"
+      - links_to: "SLV_009.DIM_REG_003 via REGION_CD"
+      - links_to: "SLV_009.DIM_SEG_4421 via SEGMENT_CD"
+      - feeds_into: "GLD_003.SEG_4421, GLD_003.REG_7733, GLD_003.ISS_8844, GLD_003.GRO_5566"
+    columns:
+      POS_ID:
+        description: "Unique identifier for each position record."
+        data_type: "VARCHAR(50)"
+        business_meaning: "Position identifier"
+        example: "POS001"
+        
+      BOND_ID:
+        description: "Bond identifier - links to SLV_009.DIM_BND_001 for bond details."
+        data_type: "VARCHAR(50)"
+        business_meaning: "Bond identifier"
+        example: "BND001"
+        relationships:
+          - references: "SLV_009.DIM_BND_001.BND_ID"
+        
+      ISSUER_ID:
+        description: "Issuer identifier - links to SLV_009.DIM_ISS_002 for issuer details."
+        data_type: "VARCHAR(50)"
+        business_meaning: "Issuer identifier"
+        example: "ISS001"
+        relationships:
+          - references: "SLV_009.DIM_ISS_002.ISS_ID"
+        
+      REGION_CD:
+        description: |
+          Region code - links to SLV_009.DIM_REG_003 for region names.
+          Values: 'WEST', 'NORTHEAST', 'SOUTH', 'MIDWEST', 'OTHER'.
+        data_type: "VARCHAR(10)"
+        business_meaning: "Geographic region classification"
+        example: "WEST, NORTHEAST"
+        glossary_term: "Geographic Region"
+        relationships:
+          - references: "SLV_009.DIM_REG_003.REGION_CD"
+        
+      SEGMENT_CD:
+        description: |
+          Segment code - links to SLV_009.DIM_SEG_4421 for segment names.
+          Values: '001' (tax-exempt), '002' (taxable), 'X' (other).
+        data_type: "VARCHAR(20)"
+        business_meaning: "Segment classification"
+        example: "001, 002"
+        notes: |
+          '001' = Tax-Exempt Municipal Bond
+          '002' = Taxable Municipal Bond
+          Join with DIM_SEG_4421 to filter for tax-exempt (WHERE TAX_EXEMPT_FLAG = 1)
+        glossary_term: "Bond Segment"
+        relationships:
+          - references: "SLV_009.DIM_SEG_4421.SEGMENT_CD"
+        
+      STATUS_CD:
+        description: |
+          Position status code - opaque code indicating whether the position is active or inactive.
+          Opaque codes: 'A', '1', 'Y' = active (currently held), 'I', '0', 'N' = inactive 
+          (sold/closed, excluded from calculations), 'U' = unknown status.
+          Only active positions (A/1/Y) are included in this table.
+        data_type: "VARCHAR(10)"
+        business_meaning: "Position status (active/inactive)"
+        example: "A, I, U"
+        notes: |
+          Opaque codes: 'A'/'1'/'Y' = active, 'I'/'0'/'N' = inactive, 'U' = unknown
+          Only active positions are included in position calculations
+          Filter by STATUS_CD IN ('A', '1', 'Y') to get active positions only
+        glossary_term: "Position Status"
+        
+      MATURITY_MULTIPLIER:
+        description: |
+          Maturity multiplier - opaque business adjustment factor based on years to maturity.
+          Opaque calculation: < 5 years to maturity = 1.05 (premium for near-term bonds), 
+          5-10 years = 1.02 (moderate premium), > 10 years = 1.0 (no premium).
+          Business rationale: Reflects time value and liquidity premium for bonds approaching maturity.
+          Used in adjusted market value calculation.
+        data_type: "DECIMAL(5, 2)"
+        business_meaning: "Maturity-based adjustment factor"
+        example: "1.05, 1.02, 1.0"
+        notes: |
+          Opaque calculation based on years to maturity:
+          - < 5 years = 1.05 (premium for near-term bonds)
+          - 5-10 years = 1.02 (moderate premium)
+          - > 10 years = 1.0 (no premium)
+          Used in MARKET_VALUE calculation
+        glossary_term: "Maturity Multiplier"
+        
+      RISK_FACTOR:
+        description: |
+          Risk factor - opaque business adjustment factor based on credit rating.
+          Opaque calculation: AAA/AA/A (investment grade) = 0.98 (lower risk, slight discount), 
+          BBB/BB/B (speculative grade) = 1.0 (standard risk), others = 1.05 (higher risk premium).
+          Business rationale: Adjusts market value to reflect credit risk premiums.
+          Used in adjusted market value calculation.
+        data_type: "DECIMAL(5, 2)"
+        business_meaning: "Credit risk adjustment factor"
+        example: "0.98, 1.0, 1.05"
+        notes: |
+          Opaque calculation based on credit rating:
+          - AAA/AA/A = 0.98 (investment grade, lower risk)
+          - BBB/BB/B = 1.0 (speculative grade, standard risk)
+          - Others = 1.05 (higher risk premium)
+          Used in MARKET_VALUE calculation
+        glossary_term: "Risk Factor"
+        
+      PAR_VALUE:
+        description: |
+          Par value - total par value of the bond position. This represents the face 
+          value or principal amount of the position. Used as the base for adjusted market 
+          value calculation.
+        data_type: "DECIMAL(18, 2)"
+        business_meaning: "Total par value of position"
+        example: "1000000.00"
+        glossary_term: "Par Value"
+        notes: |
+          Use SUM(PAR_VALUE) for total position calculations
+          This is the base value used in the adjusted market value formula
+          
+      MARKET_VALUE:
+        description: |
+          Adjusted market value - complex calculation of the bond position's market value 
+          adjusted for business factors. This is NOT a simple par + interest calculation.
+          
+          **Complex Formula**: 
+          MARKET_VALUE = PAR_VALUE * (1 + COUPON_RATE/100) * MATURITY_MULTIPLIER * RISK_FACTOR
+          
+          **Components**:
+          - PAR_VALUE: Base par value of the position
+          - (1 + COUPON_RATE/100): Interest accrual factor
+          - MATURITY_MULTIPLIER: Opaque maturity-based adjustment (1.05, 1.02, or 1.0)
+          - RISK_FACTOR: Opaque credit risk adjustment (0.98, 1.0, or 1.05)
+          
+          **Business Rationale**: 
+          The maturity multiplier reflects time value and liquidity premium for bonds 
+          approaching maturity. The risk factor adjusts for credit risk premiums. 
+          This adjusted value is used for all position reporting and analytics.
+        data_type: "DECIMAL(18, 2)"
+        business_meaning: "Adjusted market value of position (complex calculation)"
+        example: "1050000.00"
+        glossary_term: "Adjusted Market Value"
+        notes: |
+          This is an ADJUSTED market value, not a simple par + interest
+          Formula: PAR_VALUE * (1 + COUPON_RATE/100) * MATURITY_MULTIPLIER * RISK_FACTOR
+          The opaque multipliers and risk factors are documented in DataHub glossary terms
+          Use SUM(MARKET_VALUE) for total adjusted market value calculations
+        
+      POSITION_DATE:
+        description: |
+          Position date - the date when this position was created or last updated.
+          This is the effective date for the position record.
+        data_type: "DATE"
+        business_meaning: "Position effective date"
+        example: "2024-01-15"
+        notes: |
+          This is the date when the position was established or last updated
+          Use this for position lifecycle tracking
+        
+      AS_OF_DATE:
+        description: |
+          As-of date - the date for which this position snapshot is valid. Use this 
+          to filter for current positions (typically MAX(AS_OF_DATE)).
+        data_type: "DATE"
+        business_meaning: "Position snapshot date"
+        example: "2024-01-15"
+        notes: |
+          Always filter by AS_OF_DATE to get current positions:
+          WHERE AS_OF_DATE = (SELECT MAX(AS_OF_DATE) FROM GLD_003.POS_9912)
+        
+      CREATED_TS:
+        description: |
+          Created timestamp - the timestamp when this position record was created in the system.
+          This is an audit field for tracking when records are inserted.
+        data_type: "TIMESTAMP_NTZ"
+        business_meaning: "Record creation timestamp"
+        example: "2024-01-15 10:30:00"
+        notes: |
+          This is an audit field for tracking record creation
+          Use this for data quality checks and audit trails
+        
+  - table: "GLD_003.SEG_4421"
+    description: |
+      Segment aggregations table. Contains total positions aggregated by segment 
+      (tax-exempt vs taxable) for reporting.
+      
+      **Purpose**: Pre-aggregated position data by segment for fast reporting on 
+      tax-exempt vs taxable bonds.
+      
+      **Data Flow**:
+      - Source: Aggregated from GLD_003.POS_9912 via dynamic table DT_SEG_4421
+      - Destination: Used for segment-based reporting and dashboards
+      - Transformation: Aggregates positions by segment and date
+      
+      **Key Characteristics**:
+      - Pre-aggregated by segment (one row per segment per date)
+      - Includes total par value, market value, and position count
+      - Time-series data (AS_OF_DATE for historical snapshots)
+      - Optimized for segment reporting queries
+      
+      **Usage Notes**:
+      - Use for segment-based reporting (tax-exempt vs taxable)
+      - Always filter by AS_OF_DATE for current aggregations
+      - Join with DIM_SEG_4421 for segment names
+      - Faster than aggregating from POS_9912
+    business_purpose: |
+      Provides pre-aggregated position data by segment for fast segment-based reporting 
+      and analysis.
+    data_lineage: |
+      GLD_003.POS_9912 → DT_SEG_4421 → GLD_003.SEG_4421
+    usage_notes: |
+      - Segment-based reporting
+      - Tax-exempt vs taxable analysis
+      - Always filter by latest AS_OF_DATE
+      - Join with DIM_SEG_4421 for segment names
+    relationships:
+      - source: "GLD_003.POS_9912 via dynamic table DT_SEG_4421"
+      - links_to: "SLV_009.DIM_SEG_4421 via SEGMENT_CD"
+    columns:
+      SEGMENT_CD:
+        description: |
+          Segment code - links to SLV_009.DIM_SEG_4421 for segment names.
+          Values: '001' (tax-exempt), '002' (taxable), 'X' (other).
+        data_type: "VARCHAR(20)"
+        business_meaning: "Segment identifier"
+        example: "001, 002"
+        glossary_term: "Bond Segment"
+        relationships:
+          - references: "SLV_009.DIM_SEG_4421.SEGMENT_CD"
+        
+      AS_OF_DATE:
+        description: "As-of date for the aggregation snapshot."
+        data_type: "DATE"
+        business_meaning: "Aggregation snapshot date"
+        example: "2024-01-15"
+        notes: "Always filter by latest AS_OF_DATE for current aggregations"
+        
+      TOTAL_PAR_VALUE:
+        description: |
+          Total par value - sum of all par values across all positions in this segment.
+        data_type: "DECIMAL(18, 2)"
+        business_meaning: "Total par value for segment"
+        example: "465000000.00"
+        glossary_term: "Par Value"
+        notes: "Use for segment total position calculations"
+        
+      TOTAL_MARKET_VALUE:
+        description: |
+          Total market value - sum of all market values across all positions in this segment.
+        data_type: "DECIMAL(18, 2)"
+        business_meaning: "Total market value for segment"
+        example: "473500000.00"
+        glossary_term: "Market Value"
+        notes: "Use for segment total market value calculations"
+        
+      POSITION_COUNT:
+        description: "Number of distinct positions in this segment."
+        data_type: "NUMBER"
+        business_meaning: "Position count for segment"
+        example: "155"
+        notes: "Use for understanding position diversification"
+        
+  - table: "GLD_003.REG_7733"
+    description: |
+      Region aggregations table. Contains total positions aggregated by geographic 
+      region for reporting.
+      
+      **Purpose**: Pre-aggregated position data by region for fast geographic reporting.
+      
+      **Data Flow**:
+      - Source: Aggregated from GLD_003.POS_9912 via dynamic table DT_REG_7733
+      - Destination: Used for regional reporting and dashboards
+      - Transformation: Aggregates positions by region and date
+      
+      **Key Characteristics**:
+      - Pre-aggregated by region (one row per region per date)
+      - Includes total par value, market value, and position count
+      - Time-series data (AS_OF_DATE for historical snapshots)
+      - Optimized for regional reporting queries
+      
+      **Usage Notes**:
+      - Use for regional reporting and geographic analysis
+      - Always filter by AS_OF_DATE for current aggregations
+      - Join with DIM_REG_003 for region names
+      - Faster than aggregating from POS_9912
+    business_purpose: |
+      Provides pre-aggregated position data by geographic region for fast regional 
+      reporting and analysis.
+    data_lineage: |
+      GLD_003.POS_9912 → DT_REG_7733 → GLD_003.REG_7733
+    usage_notes: |
+      - Regional reporting
+      - Geographic analysis
+      - Always filter by latest AS_OF_DATE
+      - Join with DIM_REG_003 for region names
+    relationships:
+      - source: "GLD_003.POS_9912 via dynamic table DT_REG_7733"
+      - links_to: "SLV_009.DIM_REG_003 via REGION_CD"
+    columns:
+      REGION_CD:
+        description: |
+          Region code - links to SLV_009.DIM_REG_003 for region names.
+          Values: 'WEST', 'NORTHEAST', 'SOUTH', 'MIDWEST', 'OTHER'.
+        data_type: "VARCHAR(10)"
+        business_meaning: "Geographic region identifier"
+        example: "WEST, NORTHEAST"
+        glossary_term: "Geographic Region"
+        relationships:
+          - references: "SLV_009.DIM_REG_003.REGION_CD"
+        
+      AS_OF_DATE:
+        description: "As-of date for the aggregation snapshot."
+        data_type: "DATE"
+        business_meaning: "Aggregation snapshot date"
+        example: "2024-01-15"
+        notes: "Always filter by latest AS_OF_DATE for current aggregations"
+        
+      TOTAL_PAR_VALUE:
+        description: |
+          Total par value - sum of all par values across all positions in this region.
+        data_type: "DECIMAL(18, 2)"
+        business_meaning: "Total par value for region"
+        example: "150000000.00"
+        glossary_term: "Par Value"
+        notes: "Use for regional total position calculations"
+        
+      TOTAL_MARKET_VALUE:
+        description: |
+          Total market value - sum of all market values across all positions in this region.
+        data_type: "DECIMAL(18, 2)"
+        business_meaning: "Total market value for region"
+        example: "152500000.00"
+        glossary_term: "Market Value"
+        notes: "Use for regional total market value calculations"
+        
+      POSITION_COUNT:
+        description: "Number of distinct positions in this region."
+        data_type: "NUMBER"
+        business_meaning: "Position count for region"
+        example: "45"
+        notes: "Use for understanding regional position diversification"
+        
+  - table: "GLD_003.ISS_8844"
+    description: |
+      Issuer aggregations table. Contains total positions aggregated by issuer for reporting.
+      
+      **Purpose**: Pre-aggregated position data by issuer for fast issuer-based reporting.
+      
+      **Data Flow**:
+      - Source: Aggregated from GLD_003.POS_9912 via dynamic table DT_ISS_8844
+      - Destination: Used for issuer reporting and dashboards
+      - Transformation: Aggregates positions by issuer and date
+      
+      **Key Characteristics**:
+      - Pre-aggregated by issuer (one row per issuer per date)
+      - Includes total par value, market value, and position count
+      - Time-series data (AS_OF_DATE for historical snapshots)
+      - Optimized for issuer reporting queries
+      
+      **Usage Notes**:
+      - Use for issuer-based reporting and concentration analysis
+      - Always filter by AS_OF_DATE for current aggregations
+      - Join with DIM_ISS_002 for issuer names
+      - Faster than aggregating from POS_9912
+    business_purpose: |
+      Provides pre-aggregated position data by issuer for fast issuer-based reporting 
+      and concentration analysis.
+    data_lineage: |
+      GLD_003.POS_9912 → DT_ISS_8844 → GLD_003.ISS_8844
+    usage_notes: |
+      - Issuer-based reporting
+      - Concentration analysis
+      - Top issuer analysis
+      - Always filter by latest AS_OF_DATE
+      - Join with DIM_ISS_002 for issuer names
+    relationships:
+      - source: "GLD_003.POS_9912 via dynamic table DT_ISS_8844"
+      - links_to: "SLV_009.DIM_ISS_002 via ISSUER_ID"
+    columns:
+      ISSUER_ID:
+        description: "Issuer identifier - links to SLV_009.DIM_ISS_002 for issuer details."
+        data_type: "VARCHAR(50)"
+        business_meaning: "Issuer identifier"
+        example: "ISS001"
+        glossary_term: "Bond Issuer"
+        relationships:
+          - references: "SLV_009.DIM_ISS_002.ISS_ID"
+        
+      AS_OF_DATE:
+        description: "As-of date for the aggregation snapshot."
+        data_type: "DATE"
+        business_meaning: "Aggregation snapshot date"
+        example: "2024-01-15"
+        notes: "Always filter by latest AS_OF_DATE for current aggregations"
+        
+      TOTAL_PAR_VALUE:
+        description: |
+          Total par value - sum of all par values across all positions for this issuer.
+        data_type: "DECIMAL(18, 2)"
+        business_meaning: "Total par value for issuer"
+        example: "25000000.00"
+        glossary_term: "Par Value"
+        notes: "Use for issuer total position calculations"
+        
+      TOTAL_MARKET_VALUE:
+        description: |
+          Total market value - sum of all market values across all positions for this issuer.
+        data_type: "DECIMAL(18, 2)"
+        business_meaning: "Total market value for issuer"
+        example: "25500000.00"
+        glossary_term: "Market Value"
+        notes: "Use for issuer total market value calculations"
+        
+      POSITION_COUNT:
+        description: "Number of distinct positions for this issuer."
+        data_type: "NUMBER"
+        business_meaning: "Position count for issuer"
+        example: "8"
+        notes: "Use for understanding issuer position diversification"
+        
+  - table: "GLD_003.GRO_5566"
+    description: |
+      Growth metrics table. Contains position growth metrics over time by segment and 
+      region, including value changes and percentage changes.
+      
+      **Purpose**: Provides time-series growth metrics for analyzing position trends 
+      over time. Tracks how positions are growing or shrinking by segment and region.
+      
+      **Data Flow**:
+      - Source: Calculated from position aggregations via dynamic table DT_GRO_5566
+      - Destination: Used for growth analysis, trend reporting, and dashboards
+      - Transformation: Calculates period-over-period growth metrics
+      
+      **Key Characteristics**:
+      - Time-series data (METRIC_DATE for historical trends)
+      - Growth metrics by segment and region
+      - Includes value change and percentage change
+      - Calculated period-over-period comparisons
+      - Optimized for growth analysis queries
+      
+      **Usage Notes**:
+      - Use for growth analysis and trend reporting
+      - Filter by date range for specific time periods
+      - Join with dimension tables for readable names
+      - Use VALUE_CHANGE and PCT_CHANGE for growth metrics
+    business_purpose: |
+      Provides time-series growth metrics for analyzing position trends over time. 
+      Tracks position growth by segment and region for portfolio analysis.
+    data_lineage: |
+      GLD_003.POS_9912 aggregations → DT_GRO_5566 → GLD_003.GRO_5566
+    usage_notes: |
+      - Growth analysis
+      - Trend reporting
+      - Period-over-period comparisons
+      - Filter by date range for specific periods
+      - Join with dimension tables for readable names
+    relationships:
+      - source: "Calculated from position aggregations via dynamic table DT_GRO_5566"
+      - links_to: "SLV_009.DIM_SEG_4421 via SEGMENT_CD"
+      - links_to: "SLV_009.DIM_REG_003 via REGION_CD"
+    columns:
+      METRIC_DATE:
+        description: "Date for which this growth metric is calculated."
+        data_type: "DATE"
+        business_meaning: "Growth metric calculation date"
+        example: "2024-01-15"
+        notes: "Use to filter by date range for trend analysis"
+        
+      SEGMENT_CD:
+        description: |
+          Segment code - links to SLV_009.DIM_SEG_4421 for segment names.
+          Values: '001' (tax-exempt), '002' (taxable), 'X' (other).
+        data_type: "VARCHAR(20)"
+        business_meaning: "Segment identifier"
+        example: "001, 002"
+        glossary_term: "Bond Segment"
+        relationships:
+          - references: "SLV_009.DIM_SEG_4421.SEGMENT_CD"
+        
+      REGION_CD:
+        description: |
+          Region code - links to SLV_009.DIM_REG_003 for region names.
+          Values: 'WEST', 'NORTHEAST', 'SOUTH', 'MIDWEST', 'OTHER'.
+        data_type: "VARCHAR(10)"
+        business_meaning: "Geographic region identifier"
+        example: "WEST, NORTHEAST"
+        glossary_term: "Geographic Region"
+        relationships:
+          - references: "SLV_009.DIM_REG_003.REGION_CD"
+        
+      TOTAL_PAR_VALUE:
+        description: |
+          Total par value - total par value for this date/segment/region combination.
+        data_type: "DECIMAL(18, 2)"
+        business_meaning: "Total par value for period"
+        example: "465000000.00"
+        glossary_term: "Par Value"
+        
+      TOTAL_MARKET_VALUE:
+        description: |
+          Total market value - total market value for this date/segment/region combination.
+        data_type: "DECIMAL(18, 2)"
+        business_meaning: "Total market value for period"
+        example: "473500000.00"
+        glossary_term: "Market Value"
+        
+      VALUE_CHANGE:
+        description: |
+          Value change - change in total value from the previous period.
+          Positive values indicate growth, negative values indicate decline.
+        data_type: "DECIMAL(18, 2)"
+        business_meaning: "Period-over-period value change"
+        example: "5000000.00"
+        glossary_term: "Position Growth"
+        notes: "Positive = growth, Negative = decline"
+        
+      PCT_CHANGE:
+        description: |
+          Percentage change - percentage change in total value from the previous period.
+          Expressed as a decimal (e.g., 1.09 = 1.09% growth).
+        data_type: "DECIMAL(5, 2)"
+        business_meaning: "Period-over-period percentage change"
+        example: "1.09"
+        glossary_term: "Position Growth"
+        notes: "Positive = growth %, Negative = decline %"
+

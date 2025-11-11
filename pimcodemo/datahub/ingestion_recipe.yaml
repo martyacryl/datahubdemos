@@ -1,0 +1,46 @@
+# PIMCO Municipal Bond Demo - Snowflake Ingestion Recipe
+# Use this in DataHub Cloud UI: Settings > Ingestion > Create Recipe
+
+source:
+  type: snowflake
+  config:
+    account_id: ${SNOWFLAKE_ACCOUNT_ID}
+    username: ${SNOWFLAKE_USERNAME}
+    password: ${SNOWFLAKE_PASSWORD}
+    role: ${SNOWFLAKE_ROLE}
+    warehouse: ${SNOWFLAKE_WAREHOUSE}
+    
+    # Database pattern - only PIMCO_DEMO database
+    database_pattern:
+      allow:
+        - "^PIMCO_DEMO$"
+    
+    # Schema patterns - only these schemas in PIMCO_DEMO
+    schema_pattern:
+      allow:
+        - "^BRZ_001$"
+        - "^SLV_009$"
+        - "^GLD_003$"
+        
+    # Table patterns - all tables in those schemas
+    table_pattern:
+      allow:
+        - ".*"
+        
+    # Include views (dynamic tables show up as views)
+    include_views: true
+    
+    # Lineage extraction - critical for showing data flow
+    # Snowflake ingestion automatically extracts lineage from dynamic table SQL
+    include_table_lineage: true
+    include_column_lineage: true
+    
+    # Profile configuration
+    profiling:
+      enabled: false
+
+sink:
+  type: datahub-rest
+  config:
+    server: ${DATAHUB_GMS_URL}
+    token: ${DATAHUB_PAT}

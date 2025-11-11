@@ -1,0 +1,225 @@
+# PIMCO Municipal Bond Demo - Business Glossary Terms
+# These terms map opaque table/column names to business-friendly terminology
+
+glossary_terms:
+  - name: "Municipal Bond Position"
+    description: "The total amount of municipal bonds held in a portfolio, measured in par value or market value. Represents ownership stake in municipal debt securities issued by state and local governments."
+    term_source: "PIMCO Business Glossary"
+    term_source_url: "https://datahub.pimco.com/glossary"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      related_tables: "POS_9912, DT_POS_9912"
+      business_area: "Fixed Income"
+      
+  - name: "Tax-Exempt Municipal Bond"
+    description: "A municipal bond where interest income is exempt from federal income tax and often state/local taxes. These bonds are issued by state and local governments for public projects."
+    term_source: "PIMCO Business Glossary"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      segment_code: "TAX_EXEMPT"
+      related_tables: "SEG_4421, DIM_SEG_4421"
+      
+  - name: "Taxable Municipal Bond"
+    description: "A municipal bond where interest income is subject to federal income tax. These are typically issued for projects that don't qualify for tax-exempt status."
+    term_source: "PIMCO Business Glossary"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      segment_code: "TAXABLE"
+      related_tables: "SEG_4421, DIM_SEG_4421"
+      
+  - name: "Par Value"
+    description: "The face value or principal amount of a bond, representing the amount that will be repaid at maturity. This is the original amount borrowed by the issuer."
+    term_source: "PIMCO Business Glossary"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      related_columns: "PAR_VALUE, PRN_AMT, PRINCIPAL_AMOUNT"
+      financial_metric: "true"
+      
+  - name: "Market Value"
+    description: "The current market price of a bond position, calculated as par value plus accrued interest and adjusted for market conditions. This represents the current worth of the position."
+    term_source: "PIMCO Business Glossary"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      related_columns: "MARKET_VALUE"
+      financial_metric: "true"
+      
+  - name: "Bond Segment"
+    description: "A classification of bonds based on tax status (tax-exempt vs taxable) or other characteristics. Used for portfolio analysis and reporting."
+    term_source: "PIMCO Business Glossary"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      related_tables: "SEG_4421, DIM_SEG_4421"
+      dimension_type: "segment"
+      
+  - name: "Geographic Region"
+    description: "A geographic classification of municipal bond issuers, typically grouped by state or region (Northeast, South, Midwest, West). Used for regional portfolio analysis."
+    term_source: "PIMCO Business Glossary"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      related_tables: "REG_7733, DIM_REG_003"
+      dimension_type: "geography"
+      
+  - name: "Bond Issuer"
+    description: "The entity that issues municipal bonds, typically a state, municipality, or public authority. Represents the borrower in the bond transaction."
+    term_source: "PIMCO Business Glossary"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      related_tables: "ISS_8844, DIM_ISS_002, ISS_5510"
+      dimension_type: "issuer"
+      
+  - name: "Bond Transaction"
+    description: "A trade or purchase of municipal bonds, including trade date, settlement date, and principal amount. Records individual bond purchases or sales in the portfolio."
+    term_source: "PIMCO Business Glossary"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      related_tables: "TX_0421, TXN_7821, DT_TXN_7821"
+      transaction_type: "true"
+      
+  - name: "Position Growth"
+    description: "The change in bond position value over time, measured as absolute dollar change and percentage change. Used to track portfolio growth by segment and region."
+    term_source: "PIMCO Business Glossary"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      related_tables: "GRO_5566, DT_GRO_5566"
+      metric_type: "growth"
+      
+  - name: "Coupon Rate"
+    description: "The annual interest rate paid by a bond issuer, expressed as a percentage of the bond's par value. Determines the periodic interest payments to bondholders."
+    term_source: "PIMCO Business Glossary"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      related_columns: "COUPON_RATE, CPN_RATE"
+      bond_attribute: "true"
+      
+  - name: "Maturity Date"
+    description: "The date when a bond's principal amount is repaid to the bondholder. Bonds are classified by time to maturity (short-term, medium-term, long-term)."
+    term_source: "PIMCO Business Glossary"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      related_columns: "MATURITY_DATE, MAT_DATE"
+      bond_attribute: "true"
+      
+  - name: "Credit Rating"
+    description: "An assessment of a bond issuer's creditworthiness and ability to repay debt, assigned by rating agencies (e.g., AAA, AA, A). Higher ratings indicate lower default risk."
+    term_source: "PIMCO Business Glossary"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      related_columns: "CREDIT_RATING, CR_RT"
+      bond_attribute: "true"
+      
+  - name: "Position Status"
+    description: |
+      The status of a bond position indicating whether it is active or inactive. 
+      Opaque codes are used: 'A', '1', 'Y' = active positions (currently held); 
+      'I', '0', 'N' = inactive positions (sold or closed); 'U' = unknown status.
+      Only active positions are included in reporting calculations.
+    term_source: "PIMCO Business Glossary"
+    domain: "Reporting & Analytics"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      related_columns: "STATUS_CD"
+      status_codes: "A/1/Y=active, I/0/N=inactive, U=unknown"
+      business_rule: "Only active positions (A/1/Y) are included in position calculations"
+      
+  - name: "Maturity Multiplier"
+    description: |
+      A business adjustment factor applied to bond positions based on years to maturity. 
+      This multiplier reflects the time value and liquidity premium for bonds approaching maturity.
+      Opaque calculation: < 5 years to maturity = 1.05 (premium for near-term bonds), 
+      5-10 years = 1.02 (moderate premium), > 10 years = 1.0 (no premium).
+      Used in adjusted market value calculations.
+    term_source: "PIMCO Business Glossary"
+    domain: "Reporting & Analytics"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      related_columns: "MATURITY_MULTIPLIER"
+      calculation_logic: "< 5 years = 1.05, 5-10 years = 1.02, > 10 years = 1.0"
+      business_rationale: "Reflects time value and liquidity premium for bonds approaching maturity"
+      
+  - name: "Risk Factor"
+    description: |
+      A business adjustment factor applied to bond positions based on credit rating. 
+      This factor adjusts market value calculations to reflect credit risk premiums.
+      Opaque calculation: AAA/AA/A (investment grade) = 0.98 (lower risk, slight discount), 
+      BBB/BB/B (speculative grade) = 1.0 (standard risk), others = 1.05 (higher risk premium).
+      Used in adjusted market value calculations.
+    term_source: "PIMCO Business Glossary"
+    domain: "Reporting & Analytics"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      related_columns: "RISK_FACTOR"
+      calculation_logic: "AAA/AA/A = 0.98, BBB/BB/B = 1.0, others = 1.05"
+      business_rationale: "Adjusts market value to reflect credit risk premiums"
+      
+  - name: "Adjusted Market Value"
+    description: |
+      The calculated market value of a bond position adjusted for business factors including 
+      maturity premium and credit risk. This is the complex calculation used in position reporting.
+      Formula: PAR_VALUE * (1 + COUPON_RATE/100) * MATURITY_MULTIPLIER * RISK_FACTOR.
+      The maturity multiplier reflects time value for bonds approaching maturity, and the risk 
+      factor adjusts for credit risk premiums. This adjusted value is used for all position 
+      reporting and analytics.
+    term_source: "PIMCO Business Glossary"
+    domain: "Reporting & Analytics"
+    ownership:
+      - type: "user"
+        id: "datahub"
+    custom_properties:
+      related_columns: "MARKET_VALUE"
+      calculation_formula: "PAR_VALUE * (1 + COUPON_RATE/100) * MATURITY_MULTIPLIER * RISK_FACTOR"
+      business_rationale: "Provides adjusted market value reflecting maturity premium and credit risk"
+
+term_groups:
+  - name: "Municipal Bonds"
+    description: "Complete business glossary for municipal bond portfolio management, covering positions, segments, attributes, dimensions, and transactions"
+    terms:
+      - "Municipal Bond Position"
+      - "Tax-Exempt Municipal Bond"
+      - "Taxable Municipal Bond"
+      - "Bond Segment"
+      - "Par Value"
+      - "Market Value"
+      - "Position Growth"
+      - "Geographic Region"
+      - "Bond Issuer"
+      - "Bond Transaction"
+      - "Coupon Rate"
+      - "Maturity Date"
+      - "Credit Rating"
+      - "Position Status"
+      - "Maturity Multiplier"
+      - "Risk Factor"
+      - "Adjusted Market Value"
+

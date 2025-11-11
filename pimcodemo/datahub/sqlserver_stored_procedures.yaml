@@ -1,0 +1,218 @@
+# PIMCO Municipal Bond Demo - SQL Server Stored Procedures
+# 2 stored procedures per final SQL Server table (6 total)
+# Each loads from one of 3 staging tables into the final table
+
+stored_procedures:
+  # Two stored procedures for TBL_0421 (Transaction table) - 3 staging tables total
+  - name: "sp_LoadTBL_0421_From1"
+    schema: "dbo"
+    description: |
+      Stored procedure that transforms and loads raw transaction data from first staging source into TBL_0421.
+      This simulates a transformation step within SQL Server before data is moved to Snowflake.
+    t_sql_code: |
+      CREATE PROCEDURE dbo.sp_LoadTBL_0421_From1
+      AS
+      BEGIN
+          INSERT INTO dbo.TBL_0421 (TX_ID, TD_DATE, STL_DATE, PRN_AMT, ISS_ID, BND_ID, TRD_TYPE, CUSIP, RAW_DATA)
+          SELECT 
+              STG.TRANSACTION_ID,
+              STG.TRADE_DATE,
+              STG.SETTLEMENT_DATE,
+              STG.PRINCIPAL_AMOUNT,
+              STG.ISSUER_ID,
+              STG.BOND_ID,
+              STG.TRADE_TYPE_CODE,
+              STG.CUSIP_NUMBER,
+              PARSE_JSON(STG.RAW_JSON_DATA)
+          FROM dbo.STG_TRANSACTIONS_1 STG
+          WHERE STG.TRANSACTION_ID IS NOT NULL
+            AND STG.TRADE_DATE IS NOT NULL;
+          PRINT 'Loaded ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' transactions into TBL_0421';
+      END;
+    input_tables:
+      - "dbo.STG_TRANSACTIONS_1"
+    output_tables:
+      - "dbo.TBL_0421"
+    target_table: "dbo.TBL_0421"
+    tags:
+      - "Data Process"
+      - "ETL"
+      - "Transformation"
+    domain: "Trading Operations"
+    owner: "datahub"
+  - name: "sp_LoadTBL_0421_From2"
+    schema: "dbo"
+    description: |
+      Stored procedure that transforms and loads transaction data from second staging source into TBL_0421.
+      This simulates a second data source feeding the same table.
+    t_sql_code: |
+      CREATE PROCEDURE dbo.sp_LoadTBL_0421_From2
+      AS
+      BEGIN
+          INSERT INTO dbo.TBL_0421 (TX_ID, TD_DATE, STL_DATE, PRN_AMT, ISS_ID, BND_ID, TRD_TYPE, CUSIP, RAW_DATA)
+          SELECT 
+              STG.SETTLEMENT_ID,
+              STG.TRADE_DATE,
+              STG.SETTLEMENT_DATE,
+              STG.PRINCIPAL_AMOUNT,
+              STG.ISSUER_ID,
+              STG.BOND_ID,
+              STG.TRADE_TYPE_CODE,
+              STG.CUSIP_NUMBER,
+              PARSE_JSON(STG.RAW_JSON_DATA)
+          FROM dbo.STG_TRANSACTIONS_2 STG
+          WHERE STG.SETTLEMENT_ID IS NOT NULL
+            AND STG.SETTLEMENT_DATE IS NOT NULL;
+          PRINT 'Loaded ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' transactions into TBL_0421';
+      END;
+    input_tables:
+      - "dbo.STG_TRANSACTIONS_2"
+    output_tables:
+      - "dbo.TBL_0421"
+    target_table: "dbo.TBL_0421"
+    tags:
+      - "Data Process"
+      - "ETL"
+      - "Transformation"
+    domain: "Trading Operations"
+    owner: "datahub"
+  
+  # Two stored procedures for TBL_7832 (Bond Reference table) - 3 staging tables total
+  - name: "sp_LoadTBL_7832_From1"
+    schema: "dbo"
+    description: |
+      Stored procedure that transforms and loads bond reference data from first staging source into TBL_7832.
+      This simulates a transformation step within SQL Server before data is moved to Snowflake.
+    t_sql_code: |
+      CREATE PROCEDURE dbo.sp_LoadTBL_7832_From1
+      AS
+      BEGIN
+          INSERT INTO dbo.TBL_7832 (BND_ID, CUSIP, ISIN, MAT_DATE, CPN_RATE, CR_RT, ISS_TYPE, RAW_DESC)
+          SELECT 
+              STG.BOND_ID,
+              STG.CUSIP_NUMBER,
+              STG.ISIN_NUMBER,
+              STG.MATURITY_DATE,
+              STG.COUPON_RATE,
+              STG.CREDIT_RATING,
+              STG.ISSUER_TYPE_CODE,
+              PARSE_JSON(STG.RAW_JSON_DESCRIPTION)
+          FROM dbo.STG_BOND_REF_1 STG
+          WHERE STG.BOND_ID IS NOT NULL
+            AND STG.MATURITY_DATE IS NOT NULL;
+          PRINT 'Loaded ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' bonds into TBL_7832';
+      END;
+    input_tables:
+      - "dbo.STG_BOND_REF_1"
+    output_tables:
+      - "dbo.TBL_7832"
+    target_table: "dbo.TBL_7832"
+    tags:
+      - "Data Process"
+      - "ETL"
+      - "Transformation"
+    domain: "Municipal Bonds"
+    owner: "datahub"
+  - name: "sp_LoadTBL_7832_From2"
+    schema: "dbo"
+    description: |
+      Stored procedure that transforms and loads bond reference data from second staging source into TBL_7832.
+      This simulates a second data source feeding the same table.
+    t_sql_code: |
+      CREATE PROCEDURE dbo.sp_LoadTBL_7832_From2
+      AS
+      BEGIN
+          INSERT INTO dbo.TBL_7832 (BND_ID, CUSIP, ISIN, MAT_DATE, CPN_RATE, CR_RT, ISS_TYPE, RAW_DESC)
+          SELECT 
+              STG.BOND_ID,
+              STG.CUSIP_NUMBER,
+              STG.ISIN_NUMBER,
+              STG.MATURITY_DATE,
+              STG.COUPON_RATE,
+              STG.CREDIT_RATING,
+              STG.ISSUER_TYPE_CODE,
+              PARSE_JSON(STG.RAW_JSON_DESCRIPTION)
+          FROM dbo.STG_BOND_REF_2 STG
+          WHERE STG.BOND_ID IS NOT NULL
+            AND STG.MATURITY_DATE IS NOT NULL;
+          PRINT 'Loaded ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' bonds into TBL_7832';
+      END;
+    input_tables:
+      - "dbo.STG_BOND_REF_2"
+    output_tables:
+      - "dbo.TBL_7832"
+    target_table: "dbo.TBL_7832"
+    tags:
+      - "Data Process"
+      - "ETL"
+      - "Transformation"
+    domain: "Municipal Bonds"
+    owner: "datahub"
+  
+  # Two stored procedures for TBL_5510 (Issuer table) - 3 staging tables total
+  - name: "sp_LoadTBL_5510_From1"
+    schema: "dbo"
+    description: |
+      Stored procedure that transforms and loads issuer information from first staging source into TBL_5510.
+      This simulates a transformation step within SQL Server before data is moved to Snowflake.
+    t_sql_code: |
+      CREATE PROCEDURE dbo.sp_LoadTBL_5510_From1
+      AS
+      BEGIN
+          INSERT INTO dbo.TBL_5510 (ISS_ID, ISS_NAME, ISS_TYPE, STATE_CD, MUN_NAME, RAW_INFO)
+          SELECT 
+              STG.ISSUER_ID,
+              STG.ISSUER_NAME,
+              STG.ISSUER_TYPE_CODE,
+              STG.STATE_CODE,
+              STG.MUNICIPALITY_NAME,
+              PARSE_JSON(STG.RAW_JSON_INFO)
+          FROM dbo.STG_ISSUER_REF_1 STG
+          WHERE STG.ISSUER_ID IS NOT NULL
+            AND STG.ISSUER_NAME IS NOT NULL;
+          PRINT 'Loaded ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' issuers into TBL_5510';
+      END;
+    input_tables:
+      - "dbo.STG_ISSUER_REF_1"
+    output_tables:
+      - "dbo.TBL_5510"
+    target_table: "dbo.TBL_5510"
+    tags:
+      - "Data Process"
+      - "ETL"
+      - "Transformation"
+    domain: "Municipal Bonds"
+    owner: "datahub"
+  - name: "sp_LoadTBL_5510_From2"
+    schema: "dbo"
+    description: |
+      Stored procedure that transforms and loads issuer information from second staging source into TBL_5510.
+      This simulates a second data source feeding the same table.
+    t_sql_code: |
+      CREATE PROCEDURE dbo.sp_LoadTBL_5510_From2
+      AS
+      BEGIN
+          INSERT INTO dbo.TBL_5510 (ISS_ID, ISS_NAME, ISS_TYPE, STATE_CD, MUN_NAME, RAW_INFO)
+          SELECT 
+              STG.ISSUER_ID,
+              STG.ISSUER_NAME,
+              STG.ISSUER_TYPE_CODE,
+              STG.STATE_CODE,
+              STG.MUNICIPALITY_NAME,
+              PARSE_JSON(STG.RAW_JSON_INFO)
+          FROM dbo.STG_ISSUER_REF_2 STG
+          WHERE STG.ISSUER_ID IS NOT NULL
+            AND STG.ISSUER_NAME IS NOT NULL;
+          PRINT 'Loaded ' + CAST(@@ROWCOUNT AS VARCHAR(10)) + ' issuers into TBL_5510';
+      END;
+    input_tables:
+      - "dbo.STG_ISSUER_REF_2"
+    output_tables:
+      - "dbo.TBL_5510"
+    target_table: "dbo.TBL_5510"
+    tags:
+      - "Data Process"
+      - "ETL"
+      - "Transformation"
+    domain: "Municipal Bonds"
+    owner: "datahub"
