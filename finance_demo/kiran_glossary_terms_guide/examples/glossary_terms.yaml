@@ -1,0 +1,114 @@
+# Glossary Terms YAML - Example for Import
+# Use this file with import_glossary_terms.py to import terms into DataHub
+
+glossary_nodes:
+  # Data Tier Group - for data tier classification
+  - id: data_tier
+    name: Data Tier
+    description: Data tier classification for medallion architecture (Bronze, Silver, Gold)
+    terms:
+      - id: silver
+        name: Silver
+        description: Data tier representing cleaned, validated, and enriched data ready for analytics. Silver layer data is typically cleaned from bronze (raw) data, with data quality checks applied and business logic applied.
+        related_terms:
+          - Bronze
+          - Gold
+      
+      - id: gold
+        name: Gold
+        description: Data tier representing aggregated, business-ready datasets optimized for reporting and analytics. Gold layer data is typically aggregated summaries, KPIs, and metrics ready for business consumption.
+        related_terms:
+          - Bronze
+          - Silver
+
+  # Revenue Group - for revenue-related business terms
+  - id: revenue
+    name: Revenue
+    description: Revenue-related business terms and metrics for financial analytics
+    terms:
+      - id: revenue
+        name: Revenue
+        description: Total income from sales of products or services. Core financial metric representing the total amount of money generated from business operations.
+        formula: Sum of all transaction amounts
+        examples:
+          - Product sales revenue
+          - Service revenue
+          - Subscription revenue
+        related_terms:
+          - Gross Revenue
+          - Net Revenue
+          - Product Revenue
+      
+      - id: product_revenue
+        name: Product Revenue
+        description: Revenue broken down by product or product category. Helps understand which products generate the most revenue and drive product strategy.
+        formula: Sum of transaction amounts grouped by product_id
+        calculation: SELECT product_id, SUM(amount) FROM revenue_transactions GROUP BY product_id
+        examples:
+          - Revenue from Product A: $15,000
+          - Revenue from Product B: $25,000
+        related_terms:
+          - Revenue
+          - Customer Revenue
+      
+      - id: customer_revenue
+        name: Customer Revenue
+        description: Revenue attributed to individual customers or customer segments. Critical for customer segmentation, retention analysis, and identifying high-value customers.
+        formula: Sum of transaction amounts grouped by customer_id
+        calculation: SELECT customer_id, SUM(amount) FROM revenue_transactions GROUP BY customer_id
+        examples:
+          - Enterprise customer revenue: $50,000
+          - SMB customer revenue: $10,000
+        related_terms:
+          - Revenue
+          - Product Revenue
+      
+      - id: financial_metrics
+        name: Financial Metrics
+        description: Key performance indicators (KPIs) used to measure financial performance. Essential metrics for financial reporting, forecasting, and business decision-making.
+        examples:
+          - Total Revenue
+          - Revenue Growth Rate
+          - Average Transaction Value
+          - Revenue by Region
+        related_terms:
+          - Revenue
+          - Gross Revenue
+          - Net Revenue
+      
+      - id: transaction_amount
+        name: Transaction Amount
+        description: Individual transaction value representing a single sale or purchase. Basic unit of financial transaction data, used to calculate aggregated metrics.
+        formula: Direct value from transaction record
+        data_type: DECIMAL(18, 2)
+        examples:
+          - Transaction TXN001: $1,500.00
+          - Transaction TXN002: $2,500.00
+        related_terms:
+          - Revenue
+          - Financial Metrics
+      
+      - id: gross_revenue
+        name: Gross Revenue
+        description: Total revenue before any deductions, returns, discounts, or allowances. Represents the total sales value before accounting for returns, discounts, or adjustments.
+        formula: Sum of all transaction amounts without deductions
+        calculation: SELECT SUM(amount) FROM revenue_transactions WHERE transaction_date BETWEEN start_date AND end_date
+        examples:
+          - Q1 Gross Revenue: $100,000
+          - Annual Gross Revenue: $1,200,000
+        related_terms:
+          - Revenue
+          - Net Revenue
+      
+      - id: net_revenue
+        name: Net Revenue
+        description: Revenue after deductions for returns, discounts, allowances, and other adjustments. Represents the actual revenue recognized after all adjustments, providing a more accurate picture of business performance.
+        formula: Gross Revenue - Returns - Discounts - Allowances
+        calculation: Gross Revenue - (Returns + Discounts + Allowances)
+        examples:
+          - Q1 Net Revenue: $95,000 (after $5,000 in returns)
+          - Annual Net Revenue: $1,150,000
+        related_terms:
+          - Revenue
+          - Gross Revenue
+

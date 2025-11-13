@@ -1,0 +1,72 @@
+# Example DataHub dbt Ingestion Recipe with Meta Mappings
+# This recipe shows how to configure meta mappings to automatically apply glossary terms
+
+source:
+  type: dbt-cloud  # or use "dbt" for local dbt projects
+  config:
+    # dbt Cloud API Configuration
+    account_id: YOUR_DBT_CLOUD_ACCOUNT_ID
+    project_id: YOUR_DBT_CLOUD_PROJECT_ID
+    job_id: YOUR_DBT_CLOUD_JOB_ID
+    token: "${DBT_CLOUD_TOKEN}"  # Set this environment variable
+    
+    # Target platform (your data warehouse)
+    target_platform: snowflake  # or bigquery, redshift, etc.
+    
+    # Enable meta mapping features
+    enable_meta_mapping: true
+    enable_column_meta_mapping: true
+    write_semantics: PATCH  # PATCH adds terms without overwriting existing ones
+    
+    # Model-Level Meta Mappings
+    # These mappings apply glossary terms based on model-level meta properties
+    meta_mapping:
+      # Pattern 1: Dynamic term name from meta value
+      # Maps data_tier: Silver → "Silver" term, data_tier: Gold → "Gold" term
+      data_tier:
+        match: "Silver|Gold"        # Regex: matches "Silver" OR "Gold"
+        operation: "add_term"
+        config:
+          term: "{{ $match }}"      # Uses matched value ("Silver" or "Gold")
+      
+      # Pattern 2: Static term name
+      # Maps domain: Revenue → "Revenue" term
+      domain:
+        match: "Revenue"
+        operation: "add_term"
+        config:
+          term: "Revenue"           # Static term name
+      
+      # Pattern 3: Multiple terms from comma-separated list
+      # Maps terms_list: "Revenue,Product Revenue,Financial Metrics" → all three terms
+      terms_list:
+        match: ".*"                 # Matches any value
+        operation: "add_terms"
+        config:
+          separator: ","            # Splits by comma
+    
+    # Column-Level Meta Mappings
+    # These mappings apply glossary terms based on column-level meta properties
+    column_meta_mapping:
+      # Pattern 4: Single term from column meta
+      # Maps term: "Transaction Amount" → "Transaction Amount" term
+      term:
+        match: ".*"                 # Matches any value
+        operation: "add_term"
+        config:
+          term: "{{ $match }}"      # Uses the term name from meta
+    
+    # Additional options
+    include_column_lineage: true
+    include_compiled_code: true
+    include_database_name: true
+    convert_column_urns_to_lowercase: true  # Recommended for Snowflake
+    drop_duplicate_sources: true
+
+# Sink configuration for DataHub Cloud
+sink:
+  type: datahub-rest
+  config:
+    server: "https://your-instance.acryl.io/gms"  # Your DataHub Cloud URL
+    token: "${DATAHUB_PAT}"  # Set this environment variable with your DataHub Cloud PAT
+

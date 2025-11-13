@@ -1,0 +1,48 @@
+GitHub Release Wheel File URL - v0.1.7
+========================================
+
+✅ Release created successfully!
+Release: https://github.com/martyacryl/datahubdemos/releases/tag/v0.1.7-dbt-metrics-transformer
+
+Direct Download URL (Use this in DataHub Cloud UI):
+https://github.com/martyacryl/datahubdemos/releases/download/v0.1.7-dbt-metrics-transformer/dbt_metrics_to_glossary_transformer-0.1.7-py3-none-any.whl
+
+JSON FORMAT FOR DATAHUB CLOUD UI:
+=================================
+Copy and paste this into the "Extra Pip Packages" field in DataHub Cloud UI:
+
+["https://github.com/martyacryl/datahubdemos/releases/download/v0.1.7-dbt-metrics-transformer/dbt_metrics_to_glossary_transformer-0.1.7-py3-none-any.whl"]
+
+INSTRUCTIONS:
+=============
+1. Go to DataHub Cloud UI → Settings → Ingestion → Your Recipe → Advanced
+2. Find "Extra Pip Packages" field
+3. Paste the JSON array above (with brackets and quotes)
+4. Save the advanced settings
+5. Make sure your recipe has the transformer section:
+
+   transformers:
+     - type: "transformer.dbt_metrics_to_glossary_transformer.DbtMetricsToGlossary"
+       config:
+         create_glossary_terms: true
+         apply_to_datasets: true
+         apply_to_columns: false
+         term_name_prefix: "Metric"
+         semantics: PATCH
+
+WHAT'S NEW IN v0.1.7:
+=====================
+- ✅ Fixed transformer to properly read metrics from manifest.json
+- ✅ Improved logging and error handling
+- ✅ Better manifest file discovery
+- ✅ Enhanced metrics loading with detailed logging
+- ✅ Better error messages for troubleshooting
+
+ADVANTAGES OF GITHUB RELEASE:
+=============================
+- ✅ Much shorter URL (no long query parameters)
+- ✅ Publicly accessible
+- ✅ No expiration (unlike presigned URLs)
+- ✅ Clean, simple format
+- ✅ Easy to update (just create a new release)
+

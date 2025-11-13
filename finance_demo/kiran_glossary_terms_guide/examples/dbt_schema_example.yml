@@ -1,0 +1,81 @@
+# Example dbt Schema File with Meta Properties
+# This shows how to add meta properties to models and columns for automatic glossary term assignment
+
+version: 2
+
+models:
+  - name: silver_revenue
+    description: |
+      Cleaned and enriched revenue transaction data with customer information.
+      This silver layer model:
+      - Validates and filters raw transaction data
+      - Enriches transactions with customer master data
+      - Adds calculated date fields for time-based analysis
+    config:
+      meta:
+        # Single term: Maps to "Silver" glossary term
+        data_tier: Silver
+        
+        # Single term: Maps to "Revenue" glossary term
+        domain: Revenue
+        
+        # Multiple terms: Maps to "Revenue", "Product Revenue", "Financial Metrics"
+        terms_list: "Revenue,Product Revenue,Financial Metrics"
+    
+    columns:
+      - name: transaction_id
+        description: Unique identifier for each transaction
+      
+      - name: customer_id
+        description: Identifier for the customer making the transaction
+      
+      - name: amount
+        description: Transaction amount in the specified currency
+        meta:
+          # Single term at column level: Maps to "Transaction Amount" glossary term
+          term: Transaction Amount
+      
+      - name: transaction_date
+        description: Date when the transaction occurred
+
+  - name: gold_revenue_summary
+    description: |
+      Aggregated revenue summaries optimized for business reporting and analytics.
+      This gold layer model provides:
+      - Revenue summaries by product
+      - Revenue summaries by region
+      - Revenue summaries by customer segment
+      - Time-based aggregations (year, quarter, month)
+    config:
+      meta:
+        # Dynamic term: Maps to "Gold" glossary term (uses {{ $match }} in recipe)
+        data_tier: Gold
+        
+        # Single term: Maps to "Revenue" glossary term
+        domain: Revenue
+        
+        # Multiple terms: Maps to all three terms
+        terms_list: "Revenue,Product Revenue,Financial Metrics"
+    
+    columns:
+      - name: metric_type
+        description: Type of metric aggregation (product_revenue, region_revenue, segment_revenue)
+      
+      - name: transaction_count
+        description: Number of distinct transactions
+        meta:
+          # Single term at column level
+          term: Financial Metrics
+      
+      - name: total_revenue
+        description: Total revenue amount (sum of all transaction amounts)
+        meta:
+          # Single term at column level
+          term: Revenue
+      
+      - name: avg_transaction_amount
+        description: Average transaction amount
+        meta:
+          # Single term at column level
+          term: Transaction Amount
+
